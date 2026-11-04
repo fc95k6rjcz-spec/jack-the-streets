@@ -1,0 +1,13 @@
+node_modules/
+*-preview.png
+comic-desktop.png
+comic-mobile.png
+assets/*.png
+build-*.mjs
+final-polish.mjs
+prepare-art.mjs
+story-comic.inc.js
+story-comic.css
+pursuit.inc.js
+warehouse.inc.js
+civilian.inc.js
