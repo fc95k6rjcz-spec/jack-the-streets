@@ -19,3 +19,6 @@ prepare-*.mjs
 install-*.mjs
 safehouse-touch.mjs
 foot-skid-update.mjs
+
+character-picker.inc.js
+dialogue-surrender.inc.js

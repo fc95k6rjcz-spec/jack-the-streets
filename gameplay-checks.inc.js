@@ -1,11 +1,14 @@
 window.testAudioGraph=()=>{unlockAudio();audioTick(.016);musicTick();sfx(440,.1);return {state:AC?.state,mixer:!!AUDIO_OUT,engines:!!SND.ready};};
 window.runGameplayChecks=()=>{
  const checks=[],failures=[];const check=(name,fn)=>{try{fn();checks.push(name);}catch(e){failures.push(name+': '+e.message);}};const ok=(v,m)=>{if(!v)throw Error(m||'assertion failed');};
+ check('Character choice persists and provides six gameplay sprite rows',()=>{ok(save.p1.appearance==='violet');ok(CHARACTER_LOOKS.length===6&&new Set(CHARACTER_LOOKS.map(x=>x.row)).size===6);ok(CHARACTER_SPRITES.complete&&CHARACTER_SPRITES.naturalWidth>0);});
+ check('Tank acceleration, speed cap, reverse and turret are heavy',()=>{const t={vx:0,vy:0,a:0,steer:0,human:true,turA:1,boost:1,nitroOn:true,airT:1};let speed=0;for(let i=0;i<600;i++){speed=tankDriveStep(t,{t:1,s:0},1/60,999);t.vx=speed;}ok(speed<=150&&speed>149);ok(!t.boost&&!t.nitroOn&&!t.airT);ok(Math.abs(t.turA)<.01);t.vx=0;speed=tankDriveStep(t,{t:1,s:0},1,999);ok(speed===36);for(let i=0;i<600;i++){speed=tankDriveStep(t,{t:-1,s:0},1/60,999);t.vx=speed;}ok(speed>=-55&&speed<-54);});
  gtype='campaign';save.camp={m:0,intro:1,comicSeen:Object.fromEntries(Array.from({length:9},(_,i)=>[i,1]))};start(1);state='race';paused=false;
  const h=cars[0],pos={x:IX[4],y:IY[2]},originalBuildings=[...buildings];let step=dt=>{simT+=dt;};
  Object.assign(h,{x:pos.x,y:pos.y,foot:true,def:FOOTDEF,vx:0,vy:0,wanted:2,hidden:false,finished:false,jail:null,cuff:null});cops=[];buildings.length=0;helis=[];
  const c=makeCop(h);Object.assign(c,{x:h.x-250,y:h.y,fs:0,vx:0,vy:0});cops=[c];
  check('Campaign defaults to Northern Beaches with finite mission locations',()=>{ok(CITY==='nb','wrong default map');ok(LABELS.some(l=>l.n==='MANLY')&&LABELS.some(l=>l.n==='DEE WHY'));for(const m of missions()){ok(Number.isFinite(m.at.x)&&Number.isFinite(m.at.y));for(const S of m.st)for(const p of S.pts||[S.p].filter(Boolean))ok(Number.isFinite(p.x)&&Number.isFinite(p.y),'invalid objective '+m.n);}});
+ check('Police dialogue offers voluntary hands-up and lie-down, with movement cancelling',()=>{keys.clear();const o={x:h.x-90,y:h.y,a:0,down:0};c.offs=[o];officerDialogue(o,h);ok(o.speech.text.includes('Freeze'));ok(chooseSurrender(h)&&h.surrender.phase==='hands');ok(updateSurrender(h,.1)&&h.surrender);chooseSurrender(h);ok(h.surrender.phase==='prone');keys.add('ArrowUp');ok(!updateSurrender(h,.1)&&!h.surrender);keys.clear();delete c.offs;h.fled=false;});
  check('Visible suspect cannot run down the search timer',()=>{for(let i=0;i<120;i++){step(.05);updatePursuit(h,.05);}ok(h.pursuit.unseen===0&&!h.hidden);});
  const wall={x0:h.x-100,x1:h.x+100,y0:h.y-100,y1:h.y+100,h:1,furn:[]};buildings.push(wall);
  check('Walls block sight from a nearby patrol',()=>{ok(!policeCanSee(c,h));for(let i=0;i<40;i++){step(.05);updatePursuit(h,.05);}ok(h.hidden&&h.pursuit.remaining>0);});

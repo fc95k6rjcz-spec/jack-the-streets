@@ -13,7 +13,7 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
 const errors=[];const page=await browser.newPage({viewport:{width:1440,height:1000}});page.on('pageerror',e=>errors.push(e.message));
 try{
- await page.goto(`http://127.0.0.1:${server.address().port}`);await page.locator('#enterLoadedGame').click();assert.equal(await page.locator('#menu').isHidden(),true);await page.locator('#comic').waitFor();
+ await page.goto(`http://127.0.0.1:${server.address().port}`);await page.locator('#enterLoadedGame').click();await page.locator('#characterConfirm').click();assert.equal(await page.locator('#menu').isHidden(),true);await page.locator('#comic').waitFor();
  await page.locator('.comic-art').waitFor();await page.waitForFunction(()=>document.fonts.status==='loaded');await page.waitForTimeout(500);
  assert.equal(await page.locator('[role=status]').textContent(),'PANEL 1 / 6');
  assert.equal(await page.locator('[data-comic=back]').isDisabled(),true);
