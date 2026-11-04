@@ -3200,7 +3200,7 @@ async function bootComicGame(){
  let settled=0,failed=0;const tasks=images.map(im=>new Promise(resolve=>{const complete=()=>{settled++;if(!im.naturalWidth)failed++;bar.value=Math.round(settled/(images.length+1)*100);label.textContent='Preparing the city · '+bar.value+'%';resolve();};if(im.complete)complete();else{im.addEventListener('load',complete,{once:true});im.addEventListener('error',complete,{once:true});}}));
  tasks.push(document.fonts.ready.then(()=>{settled++;bar.value=Math.round(settled/(images.length+1)*100);}));
  await Promise.all(tasks);bar.value=100;label.textContent=failed?'Ready · some artwork could not load; fallback graphics available.':'City ready. Your story starts here.';button.disabled=false;button.textContent='ENTER THE CITY →';
- button.onclick=()=>{unlockAudio();loader.remove();start(1);showMenuReal();};
+ button.onclick=()=>{unlockAudio();loader.remove();goHub();};
 }
 bootComicGame();
 requestAnimationFrame(frame);

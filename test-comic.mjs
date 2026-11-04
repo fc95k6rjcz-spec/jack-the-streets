@@ -13,7 +13,7 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
 const errors=[];const page=await browser.newPage({viewport:{width:1440,height:1000}});page.on('pageerror',e=>errors.push(e.message));
 try{
- await page.goto(`http://127.0.0.1:${server.address().port}`);await page.locator('#enterLoadedGame').click();await page.locator('#readComic').click();
+ await page.goto(`http://127.0.0.1:${server.address().port}`);await page.locator('#enterLoadedGame').click();assert.equal(await page.locator('#menu').isHidden(),true);await page.locator('#comic').waitFor();
  await page.locator('.comic-art').waitFor();await page.waitForFunction(()=>document.fonts.status==='loaded');await page.waitForTimeout(500);
  assert.equal(await page.locator('[role=status]').textContent(),'PANEL 1 / 6');
  assert.equal(await page.locator('[data-comic=back]').isDisabled(),true);
@@ -22,7 +22,7 @@ try{
  await page.keyboard.press('ArrowRight');assert.equal(await page.locator('[role=status]').textContent(),'PANEL 2 / 6');
  await page.keyboard.press('ArrowLeft');assert.equal(await page.locator('[role=status]').textContent(),'PANEL 1 / 6');
  await page.keyboard.press('Escape');assert.equal(await page.locator('#comic').isHidden(),true);assert.equal((await page.evaluate(()=>comicTest.snapshot())).paused,false);
- await page.setViewportSize({width:390,height:844});await page.locator('#readComic').click();await page.screenshot({path:path.join(root,'comic-mobile.png')});
+ await page.setViewportSize({width:390,height:844});await page.evaluate(()=>comicTest.showComic('intro',()=>{}));await page.screenshot({path:path.join(root,'comic-mobile.png')});
  const widths=await page.evaluate(()=>({body:document.querySelector('.comic-reader').scrollWidth,view:innerWidth}));assert.ok(widths.body<=widths.view,JSON.stringify(widths));
  for(let i=0;i<6;i++)await page.locator('[data-comic=next]').click();assert.equal(await page.locator('#comic').isHidden(),true);
  // Every chapter and ending must complete exactly once and restore prior pause state.
