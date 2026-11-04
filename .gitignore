@@ -11,3 +11,10 @@ story-comic.css
 pursuit.inc.js
 warehouse.inc.js
 civilian.inc.js
+safehouse.inc.js
+patrols.inc.js
+fix-*.mjs
+polish-*.mjs
+prepare-*.mjs
+install-*.mjs
+safehouse-touch.mjs
