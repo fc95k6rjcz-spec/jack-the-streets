@@ -3224,7 +3224,10 @@ function iapInit(){const S=STORE();if(!S)return;try{S.addListener('purchase',e=>
   S.products({ids:[IAP.car,IAP.cash]}).then(r=>{for(const p of r.products||[]){const el=document.getElementById(p.id===IAP.car?'iapCar':'iapCash');if(el)el.querySelector('small').textContent=p.price;}}).catch(()=>{});
   if(save.rocket)for(const p of ['p1','p2'])if(save[p]&&!save[p].owned.includes('rocket'))save[p].owned.push('rocket');}
 /* ---------- Touch controls (iPhone / iPad) ---------- */
-const TOUCHDEV=(()=>{try{return matchMedia('(pointer: coarse)').matches||navigator.maxTouchPoints>0;}catch(e){return false;}})();
+// Touch controls: on for touch-first devices (iPad/phone); a touchscreen laptop starts with them hidden.
+// Touching the screen turns them on, pressing a key turns them off (only in Settings 'AUTO').
+let TOUCHDEV=(()=>{try{return matchMedia('(pointer: coarse)').matches&&!matchMedia('(any-pointer: fine)').matches||(navigator.maxTouchPoints>1&&/iPad|iPhone|Macintosh/.test(navigator.userAgent)&&!matchMedia('(hover: hover)').matches);}catch(e){return false;}})();
+try{addEventListener('pointerdown',e=>{if(e.pointerType==='touch'&&!TOUCHDEV)TOUCHDEV=true;},true);addEventListener('keydown',()=>{if(TOUCHDEV)TOUCHDEV=false;},true);}catch(e){}
 let deviceInsetCache=null;
 function deviceInsets(){if(deviceInsetCache?.w===innerWidth&&deviceInsetCache?.h===innerHeight)return deviceInsetCache;const probe=document.createElement('div');probe.style.cssText='position:fixed;visibility:hidden;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';document.body.append(probe);const cs=getComputedStyle(probe);deviceInsetCache={w:innerWidth,h:innerHeight,top:parseFloat(cs.paddingTop)||0,right:parseFloat(cs.paddingRight)||0,bottom:parseFloat(cs.paddingBottom)||0,left:parseFloat(cs.paddingLeft)||0};probe.remove();return deviceInsetCache;}
 function compactTouch(vp){return touchOn()&&mode===1&&Math.min(vp.w,vp.h)<700;}
