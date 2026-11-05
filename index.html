@@ -1274,7 +1274,7 @@ function updateInside(h,dt){if(h.inside.sh.type==='ware'){updateSafehouse(h,dt);
   if(tapped(k,'exit')){leaveShop(h);return;}
   const empty=(sh.robbedAt||-999)>simT-120;
   if(!I.done&&!empty&&held(k,'fire')){I.robT+=dt;if(I.robT>=(sh.type==='bank'?3:1.2)){I.done=true;sh.robbedAt=simT;const amt=sh.type==='bank'?800+Math.floor(rnd()*700):150+Math.floor(rnd()*150);
-      save[h.player].cash+=amt;persist();refreshBank();I.amt=amt;h.wanted=Math.max(h.wanted,sh.type==='bank'?4:2);addWanted(h,.5);h.hidden=false;h.lastKnown=null;h.msg='ALARM! THE COPS ARE COMING!';h.msgT=3;
+      save[h.player].cash+=amt;persist();refreshBank();I.amt=amt;h.wanted=Math.max(h.wanted,sh.type==='bank'?4:2);addWanted(h,.5);h.hidden=false;h.lastKnown=null;h.robCall={x:h.x,y:h.y,until:simT+60,n:0};h.msg='🚨 ALARM! COPS ARE LEAVING THE STATION!';h.msgT=3.5;
       sfx(1000,.1,'square');setTimeout(()=>sfx(1300,.1,'square'),100);for(let q=0;q<6;q++)setTimeout(()=>sfx(q%2?700:900,.25,'sawtooth',0,.04),300+q*260);}}
   else if(!held(k,'fire'))I.robT=Math.max(0,I.robT-dt*2);}
 function drawJail(vp,c,time,u){const J=c.jail,x0=vp.x,w=vp.w,h=vp.h,cx=x0+w/2;ctx.fillStyle='#5a5f66';ctx.fillRect(x0,0,w,h);ctx.fillStyle='#4a4f56';for(let yy=0;yy<h;yy+=40)for(let xx=(yy/40%2)*40;xx<w;xx+=80)ctx.fillRect(x0+xx,yy,78,38);
@@ -2108,7 +2108,9 @@ function drawTank(c,time){ctx.save();ctx.translate(c.x+6,c.y+8);ctx.rotate(c.a);
   ctx.beginPath();ctx.arc(0,0,20,0,7);ctx.fillStyle='#4b5d34';ctx.fill();ctx.stroke();ctx.restore();}
 function makeCop(target){const back=70+Math.floor(rnd()*40),i=(target.idx-back+N)%N,off=(rnd()-.5)*60;const c=makeCar('Police',CAT.cop,null,null,0,0);
   c.x=PATH[i].x+NRM[i].x*off;c.y=PATH[i].y+NRM[i].y*off;c.a=Math.atan2(TAN[i].y,TAN[i].x);c.idx=i;c.prog=target.prog-back;c.cop=true;c.target=target;c.copPic=Math.floor(rnd()*11);
-  c.skill={easy:.78,normal:.92,hard:1.06}[save.diff||'easy']*.92;c.helm='#20304a';c.shotT=2+rnd()*2;if(CAMP())upgradeCop(c,target);c.vx=Math.cos(c.a)*260;c.vy=Math.sin(c.a)*260;if(FREE())placeCopNear(c,target);return c;}
+  c.skill={easy:.78,normal:.92,hard:1.06}[save.diff||'easy']*.92;c.helm='#20304a';c.shotT=2+rnd()*2;if(CAMP())upgradeCop(c,target);c.vx=Math.cos(c.a)*260;c.vy=Math.sin(c.a)*260;if(FREE()){if(CAMP()&&target.robCall&&simT<target.robCall.until)placeAtStation(c,target);else placeCopNear(c,target);}return c;}
+// After a robbery the response comes from the police station: cops pull out one by one and drive across town.
+function placeAtStation(c,tg){const R=tg.robCall,k=R.n++,st={x:IX[4]+420,y:IY[3]};c.x=st.x-(k%5)*150;c.y=st.y+(k%2?T*.5:-T*.5);c.a=Math.atan2(tg.y-c.y,tg.x-c.x);c.vx=c.vy=0;c.fs=0;c.fromStation=true;}
 function copInput(c,dt){if(c.gang)return fleeInput(c,dt);
   if(c.escort){if(!ARREST||ARREST.phase!=='ride')return{t:c.fs>5?-1:0,s:0,hb:false};const np=navPoint(c,ARREST.dest),df=wrapA(Math.atan2(np.y-c.y,np.x-c.x)-c.a);return{t:c.fs>360?0:Math.abs(df)>1.2&&c.fs>160?-.4:1,s:clamp(df*3.2,-1,1),hb:false};}if(c.offs)return{t:c.fs>5?-1:0,s:0,hb:false};const T0=c.target,tg=(T0.hidden||T0.pursuit?.phase==='losing')&&T0.lastKnown?T0.lastKnown:T0,dx=tg.x-c.x,dy=tg.y-c.y,d=Math.hypot(dx,dy);c.far=d>700;
   let tx,ty;if(d<320){tx=tg.x+tg.vx*.25;ty=tg.y+tg.vy*.25;}else if(FREE()){
@@ -2196,9 +2198,10 @@ function updatePursuit(h,dt){
   if(b!==P.previousBuilding){if(b&&simT-P.seenAt<1.5){P.building=b;P.entry=P.previousPosition||{x:h.x,y:h.y};P.last={x:h.x,y:h.y};}P.previousBuilding=b;}
   P.previousPosition={x:h.x,y:h.y};
   const witness=pursuitWitness(h),noisy=(h.searchNoiseUntil||0)>simT;
+  if(witness&&h.robCall)h.robCall=null;
   if(witness||noisy){const wasHidden=h.hidden;P.phase='pursuit';P.unseen=0;P.seenAt=simT;P.last={x:h.x,y:h.y};P.building=b;P.required=Math.max(P.required,20+Math.min(6,Math.ceil(h.wanted))*4);h.hidden=false;h.lastKnown={x:h.x,y:h.y,vx:h.vx||0,vy:h.vy||0};
     if(wasHidden)popText(h.x,h.y-65,'SPOTTED! SEARCH RESET','#ff5a4f');
-  }else{P.unseen+=dt;P.phase=P.unseen<1.25?'losing':'hidden';h.hidden=P.unseen>=1.25;h.lastKnown={...P.last,vx:0,vy:0};}
+  }else if(h.robCall&&simT<h.robCall.until){P.phase='responding';P.unseen=0;h.hidden=false;}else{P.unseen+=dt;P.phase=P.unseen<1.25?'losing':'hidden';h.hidden=P.unseen>=1.25;h.lastKnown={...P.last,vx:0,vy:0};}
   P.remaining=Math.max(0,P.required-P.unseen);
   if(P.unseen>=P.required){h.wanted=0;h.hidden=false;h.sus=0;h.fled=false;h.catchT=0;h.offBust=0;h.pursuit=null;h.searchClearUntil=simT+5;
     cops=cops.filter(c=>c.target!==h||c.gang);blocks=blocks.filter(c=>c.target!==h);helis=helis.filter(c=>c.target!==h);popText(h.x,h.y-70,'COPS GAVE UP!','#7be07b');sfx(660,.13,'triangle');}
