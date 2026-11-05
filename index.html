@@ -2197,11 +2197,16 @@ function updatePursuit(h,dt){
   // Remember a witnessed entrance, never the player's later position through walls.
   if(b!==P.previousBuilding){if(b&&simT-P.seenAt<1.5){P.building=b;P.entry=P.previousPosition||{x:h.x,y:h.y};P.last={x:h.x,y:h.y};}P.previousBuilding=b;}
   P.previousPosition={x:h.x,y:h.y};
-  const witness=pursuitWitness(h),noisy=(h.searchNoiseUntil||0)>simT;
-  if(witness&&h.robCall)h.robCall=null;
+  let witness=pursuitWitness(h);const noisy=(h.searchNoiseUntil||0)>simT;
+  // After a robbery the cops only know WHERE it happened. Look normal and they drive straight past you.
+  if(h.robCall&&simT<h.robCall.until&&witness){const R=h.robCall,close=cops.some(c=>c.target===h&&Math.hypot(c.x-h.x,c.y-h.y)<160),
+      atScene=Math.hypot(h.x-R.x,h.y-R.y)<520,sus=(h.sus||0)>=1;if(!(close||atScene||sus))witness=null;}
+  if(h.robCall&&simT>=h.robCall.until&&!witness){h.robCall=null;h.wanted=0;h.hidden=false;h.sus=0;h.pursuit=null;h.searchClearUntil=simT+5;
+    cops=cops.filter(c=>c.target!==h||c.gang);helis=helis.filter(c=>c.target!==h);popText(h.x,h.y-70,'😎 YOU BLENDED IN! COPS GAVE UP','#7be07b');sfx(660,.13,'triangle');return;}
+  if(witness&&h.robCall){h.robCall=null;popText(h.x,h.y-70,'🚨 THAT\'S THE ROBBER!','#ff5a4f');}
   if(witness||noisy){const wasHidden=h.hidden;P.phase='pursuit';P.unseen=0;P.seenAt=simT;P.last={x:h.x,y:h.y};P.building=b;P.required=Math.max(P.required,20+Math.min(6,Math.ceil(h.wanted))*4);h.hidden=false;h.lastKnown={x:h.x,y:h.y,vx:h.vx||0,vy:h.vy||0};
     if(wasHidden)popText(h.x,h.y-65,'SPOTTED! SEARCH RESET','#ff5a4f');
-  }else if(h.robCall&&simT<h.robCall.until){P.phase='responding';P.unseen=0;h.hidden=false;}else{P.unseen+=dt;P.phase=P.unseen<1.25?'losing':'hidden';h.hidden=P.unseen>=1.25;h.lastKnown={...P.last,vx:0,vy:0};}
+  }else if(h.robCall&&simT<h.robCall.until){P.phase='responding';P.unseen=0;h.hidden=true;h.lastKnown={x:h.robCall.x,y:h.robCall.y,vx:0,vy:0};}else{P.unseen+=dt;P.phase=P.unseen<1.25?'losing':'hidden';h.hidden=P.unseen>=1.25;h.lastKnown={...P.last,vx:0,vy:0};}
   P.remaining=Math.max(0,P.required-P.unseen);
   if(P.unseen>=P.required){h.wanted=0;h.hidden=false;h.sus=0;h.fled=false;h.catchT=0;h.offBust=0;h.pursuit=null;h.searchClearUntil=simT+5;
     cops=cops.filter(c=>c.target!==h||c.gang);blocks=blocks.filter(c=>c.target!==h);helis=helis.filter(c=>c.target!==h);popText(h.x,h.y-70,'COPS GAVE UP!','#7be07b');sfx(660,.13,'triangle');}
@@ -2320,10 +2325,11 @@ function updatePolice(dt){
           if(h.wanted>=4||(save.diff==='hard'&&lap>=LAPS-1)){const j=(i+32)%N;spikes.push({i:j,x:PATH[j].x,y:PATH[j].y,side:g,target:h,prog:h.prog+172});}
           if(h.human)popText(h.x,h.y-50,'ROADBLOCK AHEAD!','#ff5a4f');}}}}
   for(const c of cops)updateCar(c,dt);
-  if(CHASE()||CAMP())for(const h of cars){if(!h.human||!h.hidden||h.foot||h.finished)continue;const nd=nearCop(h);let r=0;
-    if(nd<750){const sp=Math.hypot(h.vx,h.vy),sf=surface(h.x,h.y);if(sp>330)r+=.35;if(h.hot)r+=.6;if(sf!==ROAD)r+=.3;if(h.sliding||h.drift>.3)r+=.4;if(h.nitroOn||h.boost>0)r+=.3;if(h.wrong>.5)r+=.2;r*=1.3-nd/750;}
-    h.sus=r>0?Math.min(1,(h.sus||0)+r*dt):Math.max(0,(h.sus||0)-dt*.12);h.susNear=nd<750;}
-  if(FREE()){for(const c of cops){if(c.gang||c.streetPatrol)continue;const g=c.target.hidden&&c.target.lastKnown?c.target.lastKnown:c.target;if(Math.hypot(c.x-g.x,c.y-g.y)>2200)placeCopNear(c,c.target);}
+  if(CHASE()||CAMP())for(const h of cars){if(!h.human||!h.hidden||(h.foot&&!h.robCall)||h.finished)continue;const nd=nearCop(h);let r=0;
+    if(nd<750&&h.foot){const sp=Math.hypot(h.vx,h.vy);if(sp>190)r+=.55;if(h.gun)r+=.45;r*=1.3-nd/750;}
+    else if(nd<750){const sp=Math.hypot(h.vx,h.vy),sf=surface(h.x,h.y);if(sp>330)r+=.35;if(h.hot)r+=.6;if(sf!==ROAD)r+=.3;if(h.sliding||h.drift>.3)r+=.4;if(h.nitroOn||h.boost>0)r+=.3;if(h.wrong>.5)r+=.2;r*=1.3-nd/750;}
+    const s0=h.sus||0;h.sus=r>0?Math.min(1,s0+r*dt):Math.max(0,s0-dt*.12);h.susNear=nd<750;if(h.robCall&&s0<.45&&h.sus>=.45)popText(h.x,h.y-60,'👀 THE COPS ARE WATCHING… ACT NORMAL','#ffcc33');}
+  if(FREE()){for(const c of cops){if(c.gang||c.streetPatrol||(c.fromStation&&c.target.robCall))continue;const g=c.target.hidden&&c.target.lastKnown?c.target.lastKnown:c.target;if(Math.hypot(c.x-g.x,c.y-g.y)>2200)placeCopNear(c,c.target);}
     for(const c of cops)if(c.dmg>=100&&!c.dead){c.dead=true;boom(c.x,c.y,true);popText(c.x,c.y-40,c.gang?'GANG CAR WRECKED!':'COP WRECKED!','#ffcc33');}
     cops=cops.filter(c=>!c.target.finished&&state!=='results'&&!(c.sinkK>=1)&&!c.dead);for(const b of blocks)b.age=(b.age||0)+dt;blocks=blocks.filter(b=>b.age<16&&!b.target.finished);}
   else{cops=cops.filter(c=>!c.target.finished&&c.target.prog-c.prog<600&&state!=='results');
