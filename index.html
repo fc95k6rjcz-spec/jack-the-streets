@@ -2126,6 +2126,8 @@ function copInput(c,dt){if(c.gang)return fleeInput(c,dt);
   if(T0.foot&&!T0.hidden&&!c.tank){const go=T0.fled&&simT>(T0.fleeT||0),stand=go?60:230,cap=go?(d<500?190:9999):(d<700?Math.max(60,(d-stand)*1.2):9999);
     if(d<stand+40){t=c.fs>25?-1:0;}else if(c.fs>cap)t=-1;
     if(!go){c.shotT=Math.max(c.shotT,1);}}
+  // responding to a robbery call: hold 650 m every 10 s (10 px = 1 m) across town
+  if(c.fromStation&&T0.robCall&&c.far&&c.fs>650)t=-.3;
   c.shotT-=dt;
   if(c.tank){c.turA=(c.turA??c.a)+clamp(wrapA(Math.atan2(dy,dx)-(c.turA??c.a)),-TANK_SPEC.turretRate*dt,TANK_SPEC.turretRate*dt);if(!T0.hidden&&!T0.inside&&d<760&&d>120&&c.shotT<=0&&Math.abs(wrapA(Math.atan2(dy,dx)-c.turA))<.25){c.shotT=EZ()?6:4.5;c.recoil=.8;const fx=Math.cos(c.turA),fy=Math.sin(c.turA);
     shots.push({x:c.x+fx*66,y:c.y+fy*66,vx:fx*700,vy:fy*700,owner:c,life:1.3,shell:true});sfx(70,.6,'sawtooth',-30,.1);parts.push({x:c.x+fx*66,y:c.y+fy*66,vx:0,vy:0,life:.2,max:.2,c:'#fff3b0',r:30,k:'flash'});}}
@@ -2410,7 +2412,7 @@ function updateCar(c,dt){if(c.streetPatrol)return;if(c.human&&updateSurrender(c,
   let max=MAXV*SPD*(c.human?1:c.skill);
   if(!c.human&&state==='race'&&!FREE()){const lead=Math.max(...cars.filter(h=>h.human).map(h=>h.prog));const gap=c.prog-lead;if(gap>N*.15)max*=.9;else if(gap<-N*.2)max*=D().catchup;}
   if(CAMP()&&c.human&&state==='race'){c.fuel=Math.max(0,(c.fuel??100)-Math.abs(c.fs||0)*dt/600);if(c.fuel<=0){max*=.12;if(rnd()<.05)smoke(c.x,c.y,1,7);if(!c.fuelWarn){c.fuelWarn=1;popText(c.x,c.y-50,'OUT OF PETROL! FIND A ⛽','#ff5a4f');sfx(120,.5,'sawtooth',-60,.06);}}else c.fuelWarn=0;}
-  if(c.boost>0)max*=1.45;if(c.nitroOn)max*=1.25;if(c.slip>.5)max*=1.08;max*=1+.008*(c.coinsHeld||0);if(c.tiny>0)max*=.68;max*=1-c.dmg*.004;if(c.wheelsLost)max*=1-.16*c.wheelsLost;if(c.flat>0)max*=.6;if(c.goo>0)max*=.5;if(c.cop&&c.far&&!c.tank)max*=EZ()?1.0:1.1;if(surf===SHAL&&!c.boat)max*=.5;if(surf===PARK)max*=Math.min(1,.55*OFF);else if(surf===PAVE)max*=Math.min(1,.92*Math.sqrt(OFF));
+  if(c.boost>0)max*=1.45;if(c.nitroOn)max*=1.25;if(c.slip>.5)max*=1.08;max*=1+.008*(c.coinsHeld||0);if(c.tiny>0)max*=.68;max*=1-c.dmg*.004;if(c.wheelsLost)max*=1-.16*c.wheelsLost;if(c.flat>0)max*=.6;if(c.goo>0)max*=.5;if(c.cop&&c.far&&!c.tank)max*=EZ()?1.0:1.1;if(c.fromStation&&c.target&&c.target.robCall&&c.far)max=650; // responding: 650 m every 10 s (10 px = 1 m)if(surf===SHAL&&!c.boat)max*=.5;if(surf===PARK)max*=Math.min(1,.55*OFF);else if(surf===PAVE)max*=Math.min(1,.92*Math.sqrt(OFF));
   const cx=Math.cos(c.a),sy=Math.sin(c.a);
   let fs=c.vx*cx+c.vy*sy,lat=-c.vx*sy+c.vy*cx;
   if(c.tank){fs=tankDriveStep(c,inp,dt,max);lat*=Math.exp(-12*dt);}
