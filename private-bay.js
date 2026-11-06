@@ -202,6 +202,7 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp, wanted=0) {
       frame=requestAnimationFrame(step);
     }
     host.onkeydown=e=>{e.stopPropagation();if(!sailing)return;if(drivingKeys.has(e.code)){e.preventDefault();held.add(e.code);}if(e.key==='Enter'&&!e.repeat){e.preventDefault();moor.click();}};
+    host.focus({preventScroll:true});
     frame=requestAnimationFrame(step);
   }
   function close(caught=false){sailing=false;cancelAnimationFrame(frame);window.removeEventListener('blur',resetInput);host.close();host.remove();returnToRamp(caught===true,wanted);}
