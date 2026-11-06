@@ -39,7 +39,7 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp) {
     button('Back to jetty',land);
   }
   function land(){
-    ashore=true;action.replaceChildren();status.textContent='Choose a plot to build on your island.';
+    view(0,0);ashore=true;action.replaceChildren();status.textContent='Choose a plot to build on your island.';
     plots.forEach((_,i)=>button('Plot '+(i+1),()=>select(i)));
     button('Board your boat',()=>drive(dock,Math.PI));
   }
@@ -47,6 +47,34 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp) {
   const held=new Set();
   const drivingKeys=new Set(['KeyW','KeyS','KeyA','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight']);
   const shores=[...svg.querySelectorAll(':scope > path')].slice(0,2);
+  // Coordinates are shared by navigation, drawing and collisions. Only nearby islands stay in memory.
+  const ocean=document.createElementNS(svg.namespaceURI,'g');
+  svg.insertBefore(ocean,shores[0]);
+  const water=svg.querySelector(':scope > rect');
+  let sector='',islets=[];
+  function chart(x,y){
+    const col=Math.floor(x/720),row=Math.floor(y/400),key=col+','+row;
+    if(key===sector)return;
+    sector=key;islets=[];
+    for(let j=row-1;j<=row+1;j++)for(let i=col-1;i<=col+1;i++){
+      if(i===0&&j===0)continue;
+      let seed=(Math.imul(i,73856093)^Math.imul(j,19349663)^7919)>>>0;
+      const roll=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+      const cx=i*720+170+roll()*360,cy=j*400+120+roll()*150,rx=52+roll()*73,ry=36+roll()*42;
+      const names=['Gumtree','Pelican','Banksia','Shearwater','Coral','Wattle'];
+      const name=names[Math.floor(roll()*names.length)]+' '+['Cay','Island','Key'][Math.floor(roll()*3)];
+      const berth={x:cx-rx-22,y:cy,name,col:i,row:j};
+      let canopy='';
+      for(let t=0;t<12;t++){const angle=roll()*Math.PI*2,r=Math.sqrt(roll())*.76;
+        canopy+='<circle cx="'+(cx+rx*r*Math.cos(angle))+'" cy="'+(cy+ry*r*Math.sin(angle))+'" r="'+(4+roll()*6)+'" fill="#456e53"/>';}
+      islets.push({cx,cy,rx,ry,berth,art:'<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+rx+'" ry="'+ry+'" fill="#e1c58a" stroke="#8bd2bf" stroke-width="6"/><ellipse cx="'+cx+'" cy="'+cy+'" rx="'+(rx-11)+'" ry="'+(ry-10)+'" fill="#84a369"/>'+canopy+'<path d="M'+berth.x+' '+cy+'h32" stroke="#70553c" stroke-width="8"/><text x="'+cx+'" y="'+(cy+ry+22)+'" text-anchor="middle" fill="white">'+name+'</text>'});
+    }
+    ocean.innerHTML=islets.map(q=>q.art).join('');
+  }
+  function view(x,y){
+    svg.setAttribute('viewBox',[x,y,720,320].join(' '));
+    water.setAttribute('x',x);water.setAttribute('y',y);
+  }
   let sailing=false, stickX=0, stickY=0;
   function resetInput(){held.clear();stickX=stickY=0;}
   function drive(start,heading){
@@ -69,7 +97,14 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp) {
     const moor=button('Dock',()=>{
       if(!berth)return;
       sailing=false;resetInput();cancelAnimationFrame(frame);
-      if(berth===dock)land();else close();
+      if(berth===dock)land();
+      else if(berth===home)close();
+      else {
+        const stop=berth;
+        ashore=true;action.replaceChildren();
+        status.textContent='Moored at '+stop.name+' · chart '+stop.col+', '+stop.row;
+        button('Board your boat',()=>drive(stop,Math.PI));
+      }
     },true);
     function step(now){
       const dt=Math.min(.04,(now-last)/1000);last=now;
@@ -86,11 +121,15 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp) {
       speed*=Math.exp(-dt*(held.has('ShiftLeft')||held.has('ShiftRight')?4:gas?.35:1.45));
       heading+=Math.max(-1,Math.min(1,turn))*Math.max(-1,Math.min(1,speed/22))*2.2*dt;
       const dx=Math.cos(heading),dy=Math.sin(heading),x=pos.x+dx*speed*dt,y=pos.y+dy*speed*dt;
-      const clear=[-14,0,15].every(k=>{const pt=new DOMPoint(x+dx*k,y+dy*k);return pt.x>2&&pt.x<718&&pt.y>2&&pt.y<318&&!shores.some(path=>path.isPointInFill(pt));});
+      chart(x,y);
+      const clear=[-14,0,15].every(k=>{const pt=new DOMPoint(x+dx*k,y+dy*k);return !shores.some(path=>path.isPointInFill(pt))&&!islets.some(q=>((pt.x-q.cx)/q.rx)**2+((pt.y-q.cy)/q.ry)**2<=1);});
       if(clear)pos={x,y};else speed*=.3;
       boat.setAttribute('transform','translate('+pos.x+' '+pos.y+') rotate('+heading*180/Math.PI+')');
-      berth=Math.abs(speed)<30?[home,dock].find(p=>Math.hypot(pos.x-p.x,pos.y-p.y)<40):null;
-      moor.disabled=!berth;moor.textContent=berth===home?'Dock at city ramp':berth===dock?'Dock at island':'Dock';
+      view(pos.x-360,pos.y-160);
+      const bearing=(Math.round(Math.atan2(home.x-pos.x,pos.y-home.y)*4/Math.PI)+8)%8;
+      status.textContent='City ramp '+['N','NE','E','SE','S','SW','W','NW'][bearing]+' · '+Math.round(Math.hypot(home.x-pos.x,home.y-pos.y)/10)+' boat lengths';
+      berth=Math.abs(speed)<30?[home,dock,...islets.map(q=>q.berth)].find(p=>Math.hypot(pos.x-p.x,pos.y-p.y)<40):null;
+      moor.disabled=!berth;moor.textContent=berth===home?'Dock at city ramp':berth===dock?'Dock at your island':berth?'Dock at '+berth.name:'Dock';
       frame=requestAnimationFrame(step);
     }
     host.onkeydown=e=>{e.stopPropagation();if(!sailing)return;if(drivingKeys.has(e.code)){e.preventDefault();held.add(e.code);}if(e.key==='Enter'&&!e.repeat){e.preventDefault();moor.click();}};
