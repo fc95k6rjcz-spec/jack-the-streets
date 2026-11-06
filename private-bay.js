@@ -41,23 +41,67 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp) {
   function land(){
     ashore=true;action.replaceChildren();status.textContent='Choose a plot to build on your island.';
     plots.forEach((_,i)=>button('Plot '+(i+1),()=>select(i)));
-    button('Sail home',()=>sail(home,false));
+    button('Board your boat',()=>drive(dock,Math.PI));
   }
-  function sail(end,toIsland){
-    ashore=false;host.querySelector('[data-jack]').replaceChildren();action.replaceChildren();
-    status.textContent=toIsland?'Crossing to the island jetty…':'Returning to the boat ramp…';
-    const start={...pos},t0=performance.now(),angle=Math.atan2(end.y-start.y,end.x-start.x)*180/Math.PI;
-    function move(now){
-      const f=Math.min(1,(now-t0)/2100);pos={x:start.x+(end.x-start.x)*f,y:start.y+(end.y-start.y)*f};
-      boat.setAttribute('transform','translate('+pos.x+' '+pos.y+') rotate('+angle+')');
-      if(f<1)frame=requestAnimationFrame(move);else if(toIsland)land();else close();
+
+  const held=new Set();
+  const drivingKeys=new Set(['KeyW','KeyS','KeyA','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight']);
+  const shores=[...svg.querySelectorAll(':scope > path')].slice(0,2);
+  let sailing=false, stickX=0, stickY=0;
+  function resetInput(){held.clear();stickX=stickY=0;}
+  function drive(start,heading){
+    resetInput();sailing=true;ashore=false;pos={...start};
+    host.querySelector('[data-jack]').replaceChildren();action.replaceChildren();
+    const touch=matchMedia('(pointer:coarse)').matches||navigator.maxTouchPoints>0;
+    status.textContent=touch?'Use the stick to steer. Slow down beside a jetty to dock.':'Drive with WASD or the arrow keys. Slow down beside a jetty and press Enter to dock.';
+    if(touch){
+      const pad=document.createElement('div'),knob=document.createElement('span');
+      pad.setAttribute('aria-label','Boat steering stick');
+      pad.style.cssText='width:78px;height:78px;border-radius:50%;background:#254958;border:3px solid #ffe094;display:grid;place-items:center;touch-action:none';
+      knob.style.cssText='width:30px;height:30px;border-radius:50%;background:#ffcc43;pointer-events:none';
+      pad.append(knob);action.append(pad);
+      function track(e){const r=pad.getBoundingClientRect(),x=e.clientX-r.left-r.width/2,y=e.clientY-r.top-r.height/2,d=Math.max(30,Math.hypot(x,y));stickX=x/d;stickY=y/d;knob.style.transform='translate('+stickX*24+'px,'+stickY*24+'px)';}
+      pad.onpointerdown=e=>{pad.setPointerCapture(e.pointerId);track(e);};
+      pad.onpointermove=e=>{if(pad.hasPointerCapture(e.pointerId))track(e);};
+      pad.onlostpointercapture=()=>{stickX=stickY=0;knob.style.transform='';};
     }
-    frame=requestAnimationFrame(move);
+    let berth=null,speed=0,last=performance.now();
+    const moor=button('Dock',()=>{
+      if(!berth)return;
+      sailing=false;resetInput();cancelAnimationFrame(frame);
+      if(berth===dock)land();else close();
+    },true);
+    function step(now){
+      const dt=Math.min(.04,(now-last)/1000);last=now;
+      let gas=Number(held.has('ArrowUp')||held.has('KeyW'))-Number(held.has('ArrowDown')||held.has('KeyS'));
+      let turn=Number(held.has('ArrowRight')||held.has('KeyD'))-Number(held.has('ArrowLeft')||held.has('KeyA'));
+      const mag=Math.hypot(stickX,stickY);
+      if(mag>.15){
+        const diff=Math.atan2(Math.sin(Math.atan2(stickY,stickX)-heading),Math.cos(Math.atan2(stickY,stickX)-heading));
+        const reverse=Math.abs(diff)>2.2&&Math.abs(speed)<18;
+        turn=reverse?-Math.sign(diff)*(Math.PI-Math.abs(diff)):diff;
+        gas=reverse?-mag:mag;
+      }
+      speed=Math.max(-34,Math.min(100,speed+gas*(gas*speed<0?150:72)*dt));
+      speed*=Math.exp(-dt*(held.has('ShiftLeft')||held.has('ShiftRight')?4:gas?.35:1.45));
+      heading+=Math.max(-1,Math.min(1,turn))*Math.max(-1,Math.min(1,speed/22))*2.2*dt;
+      const dx=Math.cos(heading),dy=Math.sin(heading),x=pos.x+dx*speed*dt,y=pos.y+dy*speed*dt;
+      const clear=[-14,0,15].every(k=>{const pt=new DOMPoint(x+dx*k,y+dy*k);return pt.x>2&&pt.x<718&&pt.y>2&&pt.y<318&&!shores.some(path=>path.isPointInFill(pt));});
+      if(clear)pos={x,y};else speed*=.3;
+      boat.setAttribute('transform','translate('+pos.x+' '+pos.y+') rotate('+heading*180/Math.PI+')');
+      berth=Math.abs(speed)<30?[home,dock].find(p=>Math.hypot(pos.x-p.x,pos.y-p.y)<40):null;
+      moor.disabled=!berth;moor.textContent=berth===home?'Dock at city ramp':berth===dock?'Dock at island':'Dock';
+      frame=requestAnimationFrame(step);
+    }
+    host.onkeydown=e=>{e.stopPropagation();if(!sailing)return;if(drivingKeys.has(e.code)){e.preventDefault();held.add(e.code);}if(e.key==='Enter'&&!e.repeat){e.preventDefault();moor.click();}};
+    frame=requestAnimationFrame(step);
   }
-  function close(){cancelAnimationFrame(frame);host.close();host.remove();returnToRamp();}
-  host.oncancel=e=>{e.preventDefault();close();};
+  function close(){sailing=false;cancelAnimationFrame(frame);window.removeEventListener('blur',resetInput);host.close();host.remove();returnToRamp();}
+  window.addEventListener('blur',resetInput);
+  host.onkeyup=e=>{e.stopPropagation();held.delete(e.code);};
+  host.oncancel=e=>{e.preventDefault();if(!sailing&&!ashore)close();};
   host.onkeydown=e=>e.stopPropagation();
   host.querySelector('[data-plots]').onclick=e=>{const p=e.target.closest('[data-i]');if(p)select(Number(p.dataset.i));};
   paintPlots();boat.setAttribute('transform','translate(116 259)');
-  status.textContent='Your boat is ready at the ramp.';button('Sail to your island',()=>sail(dock,true));button('Back to city',close);
+  status.textContent='Your boat is ready at the ramp.';button('Take the helm',()=>drive(home,-0.35));button('Back to city',close);
 };
