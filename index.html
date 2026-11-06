@@ -240,7 +240,7 @@ ol.res li.me{outline:2px solid var(--yellow)}
 @media(max-width:600px){#menu .logo{width:min(168px,46vw);height:min(168px,46vw)}}
 </style>
 
-<div id="worldDialogueLive" class="dialogue-sr" aria-live="polite"></div><aside id="policeChoice" hidden aria-label="Police surrender choices"><p></p><div><button type="button" data-surrender>HANDS UP · H</button><button type="button" data-resist>KEEP MOVING</button></div><small>Moving or firing cancels surrender.</small></aside>
+<script src="/private-bay.js"></script><div id="worldDialogueLive" class="dialogue-sr" aria-live="polite"></div><aside id="policeChoice" hidden aria-label="Police surrender choices"><p></p><div><button type="button" data-surrender>HANDS UP · H</button><button type="button" data-resist>KEEP MOVING</button></div><small>Moving or firing cancels surrender.</small></aside>
 <div id="stage"><canvas id="cv" aria-label="Jack the Streets game"></canvas></div>
 
 <div class="overlay" id="menu">
@@ -807,7 +807,7 @@ function keepCar(h){const d=h.def,w=save[h.player];if(!d||!CAT[d.id]||!CATS.incl
   w.owned.push(d.id);w.dmg=w.dmg||{};w.dmg[d.id]=Math.round(h.dmg||0);persist();refreshBank();popText(h.x,h.y-80,'🏚️ '+d.n.toUpperCase()+' ADDED TO YOUR GARAGE!','#7be07b');say('Added to your garage!');sfx(660,.1);setTimeout(()=>sfx(990,.2),100);return true;}
 /* ---------- Phone GPS ---------- */
 const GPSDEST=[['mission','❗','MISSION'],['fuel','⛽','GAS GO'],['burger','🍔','BURGER BLAST'],['repair','🔧','FIX-IT GARAGE'],['ware','🏚️','YOUR WAREHOUSE'],['bank','🏦','BIG BANK'],['mart','🏪','QUICK MART'],['guns','🔫','GUN SHOP'],['paint','🎨','SPRAY & GO']];
-function gpsPoint(h,type){if(type==='mission'){const t=MS?stageTarget(h):(curMission()&&curMission().at);return t?{x:t.x,y:t.y}:null;}
+function gpsPoint(h,type){if(type==="ramp")return CAMP()&&mode===1&&!NET.on?nearestIslandRamp(h):null;if(type==='mission'){const t=MS?stageTarget(h):(curMission()&&curMission().at);return t?{x:t.x,y:t.y}:null;}
   const sh=SHOPS.filter(x=>x.type===type).sort((a,b)=>Math.hypot(a.x-h.x,a.y-h.y)-Math.hypot(b.x-h.x,b.y-h.y))[0];return sh?{x:sh.x,y:sh.y-sh.h/2-40}:null;}
 function nearNode(x,y){const i=nearLine(x,IX).i,j=nearLine(y,IY).i;return[i,j];}
 function gpsRoute(h,p){const [si,sj]=nearNode(h.x,h.y),[ti,tj]=nearNode(p.x,p.y),key=(i,j)=>i+','+j,prev={},q=[[si,sj]];prev[key(si,sj)]=null;
@@ -3519,7 +3519,29 @@ function drawSignalUnit(x,y,angle,state,major,arrow){
   if(arrow&&state==="g"){ctx.fillStyle="#3ee06a";ctx.beginPath();ctx.moveTo(-4,h/2-4);ctx.lineTo(-4,h/2-10);ctx.lineTo(-7,h/2-10);ctx.lineTo(0,h/2-16);ctx.lineTo(7,h/2-10);ctx.lineTo(4,h/2-10);ctx.lineTo(4,h/2-4);ctx.closePath();ctx.fill();}ctx.restore();
 }
 function drawCitySignals(v){RC.forEach((c,ci)=>RR_.forEach((r,ri)=>{const x0=c*T,y0=r*T,S=2*T;if(x0>v.x0+v.w+300||x0+S<v.x0-300||y0>v.y0+v.h+300||y0+S<v.y0-300)return;const major=(ci*7+ri*11)%5===0,heads=[[x0-30,y0-30,"h"],[x0+S+30,y0+S+30,"h"],[x0+S+30,y0-30,"v"],[x0-30,y0+S+30,"v"]];for(let i=0;i<heads.length;i++){const [hx,hy,axis]=heads[i];drawSignalUnit(hx,hy,axis==="h"?Math.PI/2:0,lightOf(ci,ri,axis),major,major&&i%2===0);}}));}
-function drawCityDetails(vp,time){
+let rampTiles=null,launchSites=[];
+function islandRamps(){
+  if(tile===rampTiles)return launchSites;
+  rampTiles=tile;launchSites=[];
+  for(let r=2;r<ROWS-2;r++)for(let c=2;c<COLS-2;c++){
+    if(at(c,r)!==ROAD)continue;
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+      if(![SHAL,DEEP].includes(at(c+dx,r+dy)))continue;
+      const x=(c+.5+dx*.35)*T,y=(r+.5+dy*.35)*T;
+      if(launchSites.every(p=>Math.hypot(p.x-x,p.y-y)>T*14))launchSites.push({x,y,angle:Math.atan2(dy,dx)});
+      break;
+    }
+  }
+  return launchSites;
+}
+function nearestIslandRamp(h){return islandRamps().reduce((best,p)=>!best||Math.hypot(p.x-h.x,p.y-h.y)<Math.hypot(best.x-h.x,best.y-h.y)?p:best,null);}function drawCityDetails(vp,time){
+  if(CAMP()&&mode===1&&!NET.on) for(const ramp of islandRamps()){
+    ctx.save();ctx.translate(ramp.x,ramp.y);ctx.rotate(ramp.angle);
+    ctx.fillStyle='#a39680';ctx.fillRect(-40,-35,108,70);
+    ctx.strokeStyle='#665f53';for(let i=-34;i<66;i+=9){ctx.beginPath();ctx.moveTo(i,-32);ctx.lineTo(i,32);ctx.stroke();}
+    ctx.restore();ctx.fillStyle='#122d39';ctx.fillRect(ramp.x-65,ramp.y-62,130,24);
+    ctx.fillStyle='#ffe499';ctx.textAlign='center';ctx.font='bold 13px sans-serif';ctx.fillText('⚓ BOAT RAMP',ramp.x,ramp.y-45);
+  }
   const h=vp.car;for(const o of RELEASE_OFFICERS){if(o.until<simT)continue;drawWorldPed(o,time,true);drawSpeechBubble(o,o.x,o.y-25);}RELEASE_OFFICERS=RELEASE_OFFICERS.filter(o=>o.until>simT);
   for(const sh of SHOPS){const d=shopDoor(sh),near=h.foot&&Math.hypot(h.x-d.x,h.y-d.y)<200;if(near){ctx.save();ctx.translate(d.x,d.y);ctx.rotate(d.angle);ctx.fillStyle="#16252b";ctx.fillRect(-4,-13,12,26);ctx.strokeStyle="#dfc66d";ctx.lineWidth=2;ctx.strokeRect(-4,-13,12,26);ctx.restore();ctx.fillStyle="#f4e5ad";ctx.font="700 12px Chakra Petch,sans-serif";ctx.textAlign="center";ctx.fillText("WALK IN",d.x,d.y-28);}
     if(sh.type==="fuel"&&Math.hypot(h.x-sh.x,h.y-sh.y)<620){const y=sh.y-sh.h*.57-26;ctx.save();ctx.fillStyle="rgba(13,22,26,.9)";ctx.strokeStyle="#f4d14b";ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(sh.x-112,y-18,224,36,8);ctx.fill();ctx.stroke();ctx.fillStyle="#fff4c5";ctx.font="900 15px Chakra Petch,sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("PULL IN · STOP TO REFUEL",sh.x,y);ctx.restore();}
@@ -3528,7 +3550,15 @@ function drawCityDetails(vp,time){
 function syncCityUI(){
   let el=document.getElementById("cityService");if(!el){el=document.createElement("button");el.id="cityService";el.type="button";el.style.cssText="position:fixed;z-index:7;bottom:calc(165px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);max-width:88vw;min-height:54px;padding:10px 20px;background:#f7d84e;color:#14242d;border:4px solid #14242d;box-shadow:5px 5px 0 #111;border-radius:8px;font:900 15px Chakra Petch,sans-serif;letter-spacing:.04em";document.body.append(el);}
   const h=cars.find(c=>c.human),show=h&&CAMP()&&state==="race"&&!paused&&!COMIC&&!rotationRequired()&&!h.inside;el.hidden=!show;if(!show)return;const sh=onShop(h),speed=Math.hypot(h.vx,h.vy);
-  if(sh?.type==="fuel"&&!h.foot){el.textContent=speed>45?"⛽ BRAKE AND STOP ON THE FORECOURT":"⛽ TAP TO REFUEL · "+money(Math.ceil(100-(h.fuel??100)))+" TO FILL · E";el.disabled=speed>45;el.onclick=()=>openFuelStop(h);}
+  const ramp=CAMP()&&mode===1&&!NET.on&&nearestIslandRamp(h);
+  if(ramp&&Math.hypot(h.x-ramp.x,h.y-ramp.y)<170){
+    el.hidden=false;el.disabled=speed>50||h.wanted>=1;
+    el.textContent=h.wanted>=1?'LOSE THE POLICE TO LAUNCH':speed>50?'SLOW DOWN AT THE RAMP':'⚓ LAUNCH YOUR BOAT';
+    el.onclick=()=>{if(paused)return;paused=true;keys.clear();
+      const wallet=save[h.player];wallet.islandBuildings=wallet.islandBuildings||{};
+      window.openPrivateBay(wallet,()=>{persist();refreshBank();},()=>{paused=false;keys.clear();pressed.clear();});
+    };return;
+  }  if(sh?.type==="fuel"&&!h.foot){el.textContent=speed>45?"⛽ BRAKE AND STOP ON THE FORECOURT":"⛽ TAP TO REFUEL · "+money(Math.ceil(100-(h.fuel??100)))+" TO FILL · E";el.disabled=speed>45;el.onclick=()=>openFuelStop(h);}
   else if(h.wanted>0&&nearCop(h)<300){el.textContent="POLICE: STAY STILL TO COMPLY · MOVE TO RESIST";el.disabled=true;}
   else if(h.tyres){el.textContent=tyreCount(h)+" BLOWN TYRES · VISIT A REPAIR GARAGE";el.disabled=true;}else el.hidden=true;
 }
@@ -3537,6 +3567,7 @@ let STORY_MENU_READY=false;
 function installStoryMenu(){if(STORY_MENU_READY)return;const menu=document.getElementById('menu'),grid=menu.querySelector('.mm-grid'),left=grid.querySelector('.mm-left'),side=grid.querySelector('.side');for(const el of left.children)el.hidden=true;const card=document.createElement('section');card.className='story-launch';card.innerHTML='<p class="story-kicker">JACK THE STREETS · A COMIC BOOK CRIME STORY</p><h2 id="storyTitle"></h2><p id="storyTeaser"></p><button type="button" id="storyContinue">CONTINUE JACK’S STORY →</button><small id="storyProgress"></small>';left.prepend(card);for(const el of side.children)if(!el.classList.contains('bankrow'))el.hidden=true;menu.querySelector('.sub').textContent='A NORTHERN BEACHES CRIME STORY · DRIVE · DECIDE · LIVE WITH IT';const style=document.createElement('style');style.textContent='.story-launch{min-height:330px;display:flex;flex-direction:column;justify-content:center;padding:clamp(24px,5vw,58px);background:linear-gradient(135deg,rgba(11,20,30,.94),rgba(21,34,42,.92)),url(assets/jack-streets-cover.webp) center/cover;border:4px solid #080c10;box-shadow:8px 8px 0 #080c10;color:#f6efd9}.story-kicker{font:800 14px "Chakra Petch",sans-serif;letter-spacing:.14em;color:#ffcc33}.story-launch h2{margin:8px 0;font:900 clamp(30px,5vw,54px) Bungee,Impact,sans-serif;color:#ffcc33;text-shadow:4px 4px #101010}.story-launch #storyTeaser{max-width:660px;font:600 18px/1.5 "Chakra Petch",sans-serif;color:#eee6d5}.story-launch button{align-self:flex-start;margin-top:18px;padding:16px 22px;background:#ffcc33;border:4px solid #111;box-shadow:5px 5px 0 #111;color:#121820;font:900 20px Bungee,Impact,sans-serif;cursor:pointer}.story-launch button:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 #111}.story-launch small{margin-top:16px;color:#c8c0ad;font:700 13px "Chakra Petch",sans-serif}@media(max-width:600px){.story-launch{min-height:290px;padding:22px}.story-launch #storyTeaser{font-size:15px}.story-launch button{font-size:16px}}';document.head.append(style);document.getElementById('storyContinue').onclick=()=>{unlockAudio();whoFirst(()=>{if((camp().m||0)===0&&!camp().intro)showComic('intro',goHub);else goHub();});};STORY_MENU_READY=true;}
 function refreshStoryMenu(){const i=camp().m||0,d=curMission(),title=document.getElementById('storyTitle'),teaser=document.getElementById('storyTeaser'),progress=document.getElementById('storyProgress'),button=document.getElementById('storyContinue');if(!title)return;title.textContent=d?`ISSUE ${String(i+1).padStart(2,'0')} · ${d.n.toUpperCase()}`:'THE NEXT CHAPTER IS YOURS';teaser.textContent=d?d.say:'Ray’s garage is safe for now. The city still has unfinished business—and somebody has been watching Jack since race day.';progress.textContent=d?`CHAPTER ${i+1} OF ${missions().length} · YOUR NEXT JOB IS MARKED IN THE CITY`:'STORY COMPLETE · RETURN TO THE CITY';button.textContent=d?'CONTINUE JACK’S STORY →':'RETURN TO THE CITY →';}
 function showMenuReal(){showMenuLegacy();installStoryMenu();refreshStoryMenu();}
+GPSDEST.push(['ramp','⚓','BOAT RAMP']);
 bootComicGame();
 requestAnimationFrame(frame);
 })();
