@@ -2686,7 +2686,13 @@ function drawNight(vp,z,sx,sy,time){if(NCV.width!==cv.width||NCV.height!==cv.hei
 
 /* ---------- Render: race ---------- */
 let dpr=1;
-function resize(){dpr=Math.min(2,devicePixelRatio||1);cv.width=innerWidth*dpr;cv.height=innerHeight*dpr;}
+// Render resolution: iPads have huge retina screens, and drawing every frame at full retina detail
+// made the game crawl (~20 fps). Keep the canvas near 1.6 million pixels, then let the frame rate
+// steer it: if frames are slow, drop the detail a little; if there's room, raise it back.
+let DPR_CAP=2,DPR_Q=1;
+function resize(){const budget=Math.sqrt(1.6e6/Math.max(1,innerWidth*innerHeight));dpr=Math.max(.75,Math.min(DPR_CAP,devicePixelRatio||1,budget)*DPR_Q);cv.width=Math.round(innerWidth*dpr);cv.height=Math.round(innerHeight*dpr);}
+(()=>{let n=0,t0=performance.now();const tick=t=>{n++;if(t-t0>2500){const fps=n*1000/(t-t0);n=0;t0=t;if(document.visibilityState==='visible'){
+  if(fps<40&&DPR_Q>.6){DPR_Q=Math.max(.6,DPR_Q-.15);resize();}else if(fps>57&&DPR_Q<1){DPR_Q=Math.min(1,DPR_Q+.1);resize();}}}requestAnimationFrame(tick);};requestAnimationFrame(tick);})();
 addEventListener('resize',resize);resize();
 function viewports(){const hs=cars.filter(c=>c.human);if(NET.on&&NET.playing){const me=hs.find(h=>h.player===(NET.role==='host'?'p1':'p2'))||hs[0]||cars[0];return[{x:0,y:0,w:innerWidth,h:innerHeight,car:me}];}
   if(hs.length<2)return[{x:0,y:0,w:innerWidth,h:innerHeight,car:hs[0]||cars[0]}];
