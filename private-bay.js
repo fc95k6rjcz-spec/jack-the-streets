@@ -55,6 +55,39 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp) {
   const wrapEast=value=>value-circumference*Math.floor((value+circumference/2)/circumference);
   let voyageEast=0;
   let sector='',islets=[];
+// Natural Earth 1:110m land, projected in game units (48 units per degree).
+  let worldLand=null;
+  const ports=[
+    ['Sydney','Australia',151.8,-33.85],['Auckland','New Zealand',175.15,-36.55],
+    ['Suva','Fiji',178.48,-18.5],['Honolulu','USA',-157.95,21.0],
+    ['Valparaiso','Chile',-72,-33.0],['Cape Town','South Africa',18.05,-33.9],
+    ['Yokohama','Japan',139.98,34.95]
+  ].map(([city,country,lon,lat])=>({name:city,country,x:lon*48,y:-lat*48}));
+  let destination=ports[1];
+  async function launchWorld(trigger){
+    trigger.disabled=true;
+    try{
+      const response=await fetch('/world-land.json');
+      if(!response.ok)throw Error();
+      const data=await response.json();
+      if(!host.open)return;
+      const rings=data.features.flatMap(f=>f.geometry.type==='Polygon'?f.geometry.coordinates:f.geometry.coordinates.flat());
+      const outline=rings.map(r=>r.map(([lon,lat],i)=>(i?'L':'M')+(lon*48).toFixed(1)+' '+(-lat*48).toFixed(1)).join('')+'Z').join('');
+      for(const el of svg.children)if(![water,boat,ocean].includes(el)&&el.tagName.toLowerCase()!=='defs')el.style.display='none';
+      ocean.innerHTML='<path id="voyage-land" fill-rule="evenodd" fill="#859d68" stroke="#dfc996" stroke-width="5" d="'+outline+'"/>';
+      worldLand=ocean.firstElementChild;
+      for(const offset of [-circumference,0,circumference]){
+        if(offset)ocean.insertAdjacentHTML('beforeend','<use href="#voyage-land" transform="translate('+offset+' 0)"/>');
+        for(const p of ports)ocean.insertAdjacentHTML('beforeend','<g transform="translate('+(p.x+offset)+' '+p.y+')"><circle r="13" fill="#ffca4c" stroke="#344a43" stroke-width="3"/><text x="18" y="5" fill="white">'+p.name+'</text></g>');
+      }
+      host.querySelector('h2').textContent='World voyage';
+      const select=document.createElement('select');select.setAttribute('aria-label','Steer toward port');
+      ports.forEach((p,i)=>select.add(new Option(p.name+' · '+p.country,i)));
+      select.value='1';select.onchange=()=>destination=ports[Number(select.value)];
+      host.querySelector('header').append(select);
+      drive(ports[0],0);
+    }catch{status.textContent='The world chart could not load. Try again.';trigger.disabled=false;}
+  }
   function chart(x,y){
     const col=Math.floor(x/720),row=Math.floor(y/400),key=col+','+row;
     if(key===sector)return;
@@ -102,11 +135,11 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp) {
       if(!berth)return;
       sailing=false;resetInput();cancelAnimationFrame(frame);
       if(berth===dock)land();
-      else if(berth===home)close();
+      else if(berth===home||berth===ports[0])close();
       else {
         const stop=berth;
         ashore=true;action.replaceChildren();
-        status.textContent='Moored at '+stop.name+' · chart '+stop.col+', '+stop.row;
+        status.textContent=worldLand?'Moored at '+stop.name+', '+stop.country:'Moored at '+stop.name+' · chart '+stop.col+', '+stop.row;
         button('Board your boat',()=>drive(stop,Math.PI));
       }
     },true);
@@ -125,16 +158,18 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp) {
       speed*=Math.exp(-dt*(held.has('ShiftLeft')||held.has('ShiftRight')?4:gas?.35:1.45));
       heading+=Math.max(-1,Math.min(1,turn))*Math.max(-1,Math.min(1,speed/22))*2.2*dt;
       const dx=Math.cos(heading),dy=Math.sin(heading),x=wrapEast(pos.x+dx*speed*dt),y=pos.y+dy*speed*dt;
-      chart(x,y);
-      const clear=[-14,0,15].every(k=>{const pt=new DOMPoint(x+dx*k,y+dy*k);return !shores.some(path=>path.isPointInFill(pt))&&!islets.some(q=>((pt.x-q.cx)/q.rx)**2+((pt.y-q.cy)/q.ry)**2<=1);});
+      if(!worldLand)chart(x,y);
+      const clear=[-14,0,15].every(k=>{const pt=new DOMPoint(x+dx*k,y+dy*k);if(worldLand)return Math.abs(pt.y)<89*48&&!worldLand.isPointInFill(new DOMPoint(wrapEast(pt.x),pt.y));return !shores.some(path=>path.isPointInFill(pt))&&!islets.some(q=>((pt.x-q.cx)/q.rx)**2+((pt.y-q.cy)/q.ry)**2<=1);});
       if(clear){voyageEast+=wrapEast(x-pos.x);pos={x,y};}else speed*=.3;
       boat.setAttribute('transform','translate('+pos.x+' '+pos.y+') rotate('+heading*180/Math.PI+')');
       view(pos.x-360,pos.y-160);
-      const bearing=(Math.round(Math.atan2(wrapEast(home.x-pos.x),pos.y-home.y)*4/Math.PI)+8)%8;
+      const goal=worldLand?destination:home;
+      const bearing=(Math.round(Math.atan2(wrapEast(goal.x-pos.x),pos.y-goal.y)*4/Math.PI)+8)%8;
       const longitude=wrapEast(pos.x-home.x+151.2*circumference/360)*360/circumference;
       const progress=Math.floor(Math.abs(voyageEast)*100/circumference);
       status.textContent=Math.abs(longitude).toFixed(1)+(longitude<0?' W':' E')+' · World voyage '+progress+'% · City ramp '+['N','NE','E','SE','S','SW','W','NW'][bearing]+' · '+Math.round(Math.hypot(wrapEast(home.x-pos.x),home.y-pos.y)/10)+' boat lengths';
-      berth=Math.abs(speed)<30?[home,dock,...islets.map(q=>q.berth)].find(p=>Math.hypot(pos.x-p.x,pos.y-p.y)<40):null;
+      if(worldLand)status.textContent=destination.name+" · steer "+["N","NE","E","SE","S","SW","W","NW"][bearing]+" · "+(-pos.y/48).toFixed(1)+"° lat, "+(pos.x/48).toFixed(1)+"° lon · lap "+progress+"%";
+      berth=Math.abs(speed)<30?(worldLand?ports:[home,dock,...islets.map(q=>q.berth)]).find(p=>Math.hypot(pos.x-p.x,pos.y-p.y)<40):null;
       moor.disabled=!berth;moor.textContent=berth===home?'Dock at city ramp':berth===dock?'Dock at your island':berth?'Dock at '+berth.name:'Dock';
       frame=requestAnimationFrame(step);
     }
@@ -148,5 +183,5 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp) {
   host.onkeydown=e=>e.stopPropagation();
   host.querySelector('[data-plots]').onclick=e=>{const p=e.target.closest('[data-i]');if(p)select(Number(p.dataset.i));};
   paintPlots();boat.setAttribute('transform','translate(116 259)');
-  status.textContent='Your boat is ready at the ramp.';button('Take the helm',()=>drive(home,-0.35));button('Back to city',close);
+  status.textContent='Your boat is ready at the ramp.';button('Take the helm',()=>drive(home,-0.35));const worldButton=button('World voyage from Sydney',()=>launchWorld(worldButton));button('Back to city',close);
 };
