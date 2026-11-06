@@ -26,24 +26,20 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp, wanted=0) {
       return '<g transform="translate('+x+' '+y+')" data-i="'+i+'" style="cursor:pointer">'+(b?b.art:'<rect x="-24" y="-14" width="48" height="28" rx="4" fill="#d4bc83" stroke="#514f37" stroke-dasharray="4 3"/><text text-anchor="middle" y="5" fill="#443b25">'+(i+1)+'</text>')+'<rect x="-30" y="-32" width="60" height="56" fill="transparent"/></g>';
     }).join('');
   }
-  function select(i){
-    if(!ashore)return;
-    const [x,y]=plots[i];host.querySelector('[data-jack]').innerHTML='<circle cx="'+x+'" cy="'+(y+23)+'" r="6" fill="#e9b084" stroke="#792f2c" stroke-width="4"/>';
-    const built=catalogue[wallet.islandBuildings[i]];
-    status.textContent=built?built.name:'Plot '+(i+1)+' · Bank $'+wallet.cash;
-    action.replaceChildren();
-    if(!built)for(const [id,b] of Object.entries(catalogue))button(b.name+' · '+(b.cost?'$'+b.cost:'Free'),()=>{
-      if(wallet.islandBuildings[i]||wallet.cash<b.cost)return;
-      wallet.cash-=b.cost;wallet.islandBuildings[i]=id;saveIsland();paintPlots();select(i);
-    },wallet.cash<b.cost);
-    button('Back to jetty',land);
+  function land(stop=dock){
+    ashore=true;
+    let holdings=wallet.islandBuildings;
+    if(stop!==dock){
+      wallet.outposts=wallet.outposts||{};
+      const key=worldLand?'port:'+stop.name:'chart:'+stop.col+','+stop.row;
+      holdings=wallet.outposts[key]||(wallet.outposts[key]={});
+    }
+    host.onkeydown=host.onkeyup=null;
+    window.walkIsland(host,wallet,holdings,saveIsland,stop.name||'Jack’s Island',()=>{
+      paintPlots();host.onkeyup=e=>{e.stopPropagation();held.delete(e.code);};
+      drive(stop,Math.PI);
+    });
   }
-  function land(){
-    view(0,0);ashore=true;action.replaceChildren();status.textContent='Choose a plot to build on your island.';
-    plots.forEach((_,i)=>button('Plot '+(i+1),()=>select(i)));
-    button('Board your boat',()=>drive(dock,Math.PI));
-  }
-
   const held=new Set();
   const drivingKeys=new Set(['KeyW','KeyS','KeyA','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight']);
   const shores=[...svg.querySelectorAll(':scope > path')].slice(0,2);
@@ -148,12 +144,7 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp, wanted=0) {
       sailing=false;resetInput();cancelAnimationFrame(frame);
       if(berth===dock)land();
       else if(berth===home||berth===ports[0])close();
-      else {
-        const stop=berth;
-        ashore=true;action.replaceChildren();
-        status.textContent=worldLand?'Moored at '+stop.name+', '+stop.country:'Moored at '+stop.name+' · chart '+stop.col+', '+stop.row;
-        button('Board your boat',()=>drive(stop,Math.PI));
-      }
+      else land(berth);
     },true);
     function step(now){
       const dt=Math.min(.04,(now-last)/1000);last=now;
@@ -210,7 +201,6 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp, wanted=0) {
   host.onkeyup=e=>{e.stopPropagation();held.delete(e.code);};
   host.oncancel=e=>{e.preventDefault();if(!sailing&&!ashore)close();};
   host.onkeydown=e=>e.stopPropagation();
-  host.querySelector('[data-plots]').onclick=e=>{const p=e.target.closest('[data-i]');if(p)select(Number(p.dataset.i));};
   paintPlots();boat.setAttribute('transform','translate(116 259)');
   status.textContent='Your boat is ready at the ramp.';button('Sail to your island',()=>drive(home,-0.35));const worldButton=button('World voyage from Sydney',()=>launchWorld(worldButton));button('Back to city',close);
 };
