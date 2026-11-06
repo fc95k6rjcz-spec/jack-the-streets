@@ -20,11 +20,11 @@ window.walkIsland = function(host, wallet, buildings, save, title, board) {
     const built=catalogue[buildings[id]];
     if(built){menu.textContent=built[0];return;}
     button('Build on plot '+(id+1),()=>{
-      shopping=true;goal=null;keys.clear();menu.replaceChildren();menu.append('Bank $'+wallet.cash,document.createElement('br'));
+      shopping=true;goal=null;keys.clear();menu.replaceChildren();menu.append('Choose a free building',document.createElement('br'));
       for(const [key,[name,price]] of Object.entries(catalogue))button(name+' · '+(price?'$'+price:'Free'),()=>{
-        if(buildings[id]||wallet.cash<price)return;
-        wallet.cash-=price;buildings[id]=key;save();controls(id);host.focus();
-      },wallet.cash<price);
+        if(buildings[id])return;
+        buildings[id]=key;save();controls(id);host.focus();
+      });
       button('Back',()=>controls(id));
     });
   }
