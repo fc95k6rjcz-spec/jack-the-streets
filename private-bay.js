@@ -51,19 +51,23 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp) {
   const ocean=document.createElementNS(svg.namespaceURI,'g');
   svg.insertBefore(ocean,shores[0]);
   const water=svg.querySelector(':scope > rect');
+  const columns=24, circumference=columns*720;
+  const wrapEast=value=>value-circumference*Math.floor((value+circumference/2)/circumference);
+  let voyageEast=0;
   let sector='',islets=[];
   function chart(x,y){
     const col=Math.floor(x/720),row=Math.floor(y/400),key=col+','+row;
     if(key===sector)return;
     sector=key;islets=[];
     for(let j=row-1;j<=row+1;j++)for(let i=col-1;i<=col+1;i++){
-      if(i===0&&j===0)continue;
-      let seed=(Math.imul(i,73856093)^Math.imul(j,19349663)^7919)>>>0;
+      const longitudeColumn=((i%columns)+columns)%columns;
+      if(longitudeColumn===0&&j===0)continue;
+      let seed=(Math.imul(longitudeColumn,73856093)^Math.imul(j,19349663)^7919)>>>0;
       const roll=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
       const cx=i*720+170+roll()*360,cy=j*400+120+roll()*150,rx=52+roll()*73,ry=36+roll()*42;
       const names=['Gumtree','Pelican','Banksia','Shearwater','Coral','Wattle'];
       const name=names[Math.floor(roll()*names.length)]+' '+['Cay','Island','Key'][Math.floor(roll()*3)];
-      const berth={x:cx-rx-22,y:cy,name,col:i,row:j};
+      const berth={x:cx-rx-22,y:cy,name,col:longitudeColumn,row:j};
       let canopy='';
       for(let t=0;t<12;t++){const angle=roll()*Math.PI*2,r=Math.sqrt(roll())*.76;
         canopy+='<circle cx="'+(cx+rx*r*Math.cos(angle))+'" cy="'+(cy+ry*r*Math.sin(angle))+'" r="'+(4+roll()*6)+'" fill="#456e53"/>';}
@@ -120,14 +124,16 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp) {
       speed=Math.max(-34,Math.min(100,speed+gas*(gas*speed<0?150:72)*dt));
       speed*=Math.exp(-dt*(held.has('ShiftLeft')||held.has('ShiftRight')?4:gas?.35:1.45));
       heading+=Math.max(-1,Math.min(1,turn))*Math.max(-1,Math.min(1,speed/22))*2.2*dt;
-      const dx=Math.cos(heading),dy=Math.sin(heading),x=pos.x+dx*speed*dt,y=pos.y+dy*speed*dt;
+      const dx=Math.cos(heading),dy=Math.sin(heading),x=wrapEast(pos.x+dx*speed*dt),y=pos.y+dy*speed*dt;
       chart(x,y);
       const clear=[-14,0,15].every(k=>{const pt=new DOMPoint(x+dx*k,y+dy*k);return !shores.some(path=>path.isPointInFill(pt))&&!islets.some(q=>((pt.x-q.cx)/q.rx)**2+((pt.y-q.cy)/q.ry)**2<=1);});
-      if(clear)pos={x,y};else speed*=.3;
+      if(clear){voyageEast+=wrapEast(x-pos.x);pos={x,y};}else speed*=.3;
       boat.setAttribute('transform','translate('+pos.x+' '+pos.y+') rotate('+heading*180/Math.PI+')');
       view(pos.x-360,pos.y-160);
-      const bearing=(Math.round(Math.atan2(home.x-pos.x,pos.y-home.y)*4/Math.PI)+8)%8;
-      status.textContent='City ramp '+['N','NE','E','SE','S','SW','W','NW'][bearing]+' · '+Math.round(Math.hypot(home.x-pos.x,home.y-pos.y)/10)+' boat lengths';
+      const bearing=(Math.round(Math.atan2(wrapEast(home.x-pos.x),pos.y-home.y)*4/Math.PI)+8)%8;
+      const longitude=wrapEast(pos.x-home.x+151.2*circumference/360)*360/circumference;
+      const progress=Math.floor(Math.abs(voyageEast)*100/circumference);
+      status.textContent=Math.abs(longitude).toFixed(1)+(longitude<0?' W':' E')+' · World voyage '+progress+'% · City ramp '+['N','NE','E','SE','S','SW','W','NW'][bearing]+' · '+Math.round(Math.hypot(wrapEast(home.x-pos.x),home.y-pos.y)/10)+' boat lengths';
       berth=Math.abs(speed)<30?[home,dock,...islets.map(q=>q.berth)].find(p=>Math.hypot(pos.x-p.x,pos.y-p.y)<40):null;
       moor.disabled=!berth;moor.textContent=berth===home?'Dock at city ramp':berth===dock?'Dock at your island':berth?'Dock at '+berth.name:'Dock';
       frame=requestAnimationFrame(step);
