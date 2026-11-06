@@ -1,5 +1,5 @@
 /* A separate private inlet keeps city traffic and police out of the island. */
-window.openPrivateBay = function (wallet, saveIsland, returnToRamp) {
+window.openPrivateBay = function (wallet, saveIsland, returnToRamp, wanted=0) {
   const host = document.createElement('dialog');
   host.setAttribute('aria-label','Jack’s private island');
   host.style.cssText='position:fixed;inset:0;width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;border:0;padding:0;background:#102d38;color:#fff4da;z-index:9999;font:600 16px system-ui';
@@ -114,6 +114,9 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp) {
   }
   let sailing=false, stickX=0, stickY=0;
   function resetInput(){held.clear();stickX=stickY=0;}
+  const patrol=document.createElementNS(svg.namespaceURI,'g');
+  patrol.innerHTML='<path d="M-20 -7Q2 -12 20 0Q2 12 -20 7Z" fill="#e8ebdf" stroke="#192f46" stroke-width="2"/><rect x="-9" y="-6" width="16" height="12" rx="3" fill="#213e59"/><path d="M-5 -4h4" stroke="#ff5047" stroke-width="4"/><path d="M0 -4h4" stroke="#349aff" stroke-width="4"/>';
+  svg.insertBefore(patrol,boat);
   function drive(start,heading){
     resetInput();sailing=true;ashore=false;pos={...start};
     host.querySelector('[data-jack]').replaceChildren();action.replaceChildren();
@@ -131,8 +134,17 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp) {
       pad.onlostpointercapture=()=>{stickX=stickY=0;knob.style.transform='';};
     }
     let berth=null,speed=0,last=performance.now();
+    let marine={x:start.x,y:start.y}, boarding=0, unseen=0;
+    const navigable=(x,y)=>worldLand?!worldLand.isPointInFill(new DOMPoint(wrapEast(x),y)):
+      !shores.some(path=>path.isPointInFill(new DOMPoint(x,y)))&&!islets.some(q=>((x-q.cx)/q.rx)**2+((y-q.cy)/q.ry)**2<1);
+    for(let i=0;i<12;i++){
+      const a=i*Math.PI/6,x=start.x+125*Math.cos(a),y=start.y+125*Math.sin(a);
+      if(navigable(x,y)){marine={x,y};break;}
+    }
+    patrol.style.display='';
+
     const moor=button('Dock',()=>{
-      if(!berth)return;
+      if(!berth||wanted>=1)return;patrol.style.display='none';
       sailing=false;resetInput();cancelAnimationFrame(frame);
       if(berth===dock)land();
       else if(berth===home||berth===ports[0])close();
@@ -170,13 +182,29 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp) {
       status.textContent=Math.abs(longitude).toFixed(1)+(longitude<0?' W':' E')+' · World voyage '+progress+'% · City ramp '+['N','NE','E','SE','S','SW','W','NW'][bearing]+' · '+Math.round(Math.hypot(wrapEast(home.x-pos.x),home.y-pos.y)/10)+' boat lengths';
       if(worldLand)status.textContent=destination.name+" · steer "+["N","NE","E","SE","S","SW","W","NW"][bearing]+" · "+(-pos.y/48).toFixed(1)+"° lat, "+(pos.x/48).toFixed(1)+"° lon · lap "+progress+"%";
       berth=Math.abs(speed)<30?(worldLand?ports:[home,dock,...islets.map(q=>q.berth)]).find(p=>Math.hypot(pos.x-p.x,pos.y-p.y)<40):null;
-      moor.disabled=!berth;moor.textContent=berth===home?'Dock at city ramp':berth===dock?'Dock at your island':berth?'Dock at '+berth.name:'Dock';
+      const chasing=wanted>=1;
+      const target=chasing?pos:{x:start.x+145*Math.cos(now/9000),y:start.y+90*Math.sin(now/9000)};
+      const angle=Math.atan2(target.y-marine.y,wrapEast(target.x-marine.x));
+      for(const offset of [0,.55,-.55,1.1,-1.1,1.6,-1.6]){
+        const a=angle+offset,step=(chasing?72:22)*dt,x=wrapEast(marine.x+Math.cos(a)*step),y=marine.y+Math.sin(a)*step;
+        if(!navigable(x,y))continue;
+        marine={x,y};patrol.setAttribute('transform','translate('+(pos.x+wrapEast(x-pos.x))+' '+y+') rotate('+a*180/Math.PI+')');break;
+      }
+      if(chasing){
+        const gap=Math.hypot(wrapEast(pos.x-marine.x),pos.y-marine.y);
+        boarding=gap<30&&Math.abs(speed)<40?boarding+dt:0;
+        unseen=gap>255?unseen+dt:0;
+        status.textContent+=boarding?' · BOARDING '+Math.ceil(5-boarding)+'s':unseen?' · Lose patrol in '+Math.ceil(12-unseen)+'s':' · WATER POLICE IN PURSUIT';
+        if(boarding>=5){close(true);return;}
+        if(unseen>=12){wanted=0;}
+      }
+      moor.disabled=!berth||wanted>=1;moor.textContent=berth===home?'Dock at city ramp':berth===dock?'Dock at your island':berth?'Dock at '+berth.name:'Dock';
       frame=requestAnimationFrame(step);
     }
     host.onkeydown=e=>{e.stopPropagation();if(!sailing)return;if(drivingKeys.has(e.code)){e.preventDefault();held.add(e.code);}if(e.key==='Enter'&&!e.repeat){e.preventDefault();moor.click();}};
     frame=requestAnimationFrame(step);
   }
-  function close(){sailing=false;cancelAnimationFrame(frame);window.removeEventListener('blur',resetInput);host.close();host.remove();returnToRamp();}
+  function close(caught=false){sailing=false;cancelAnimationFrame(frame);window.removeEventListener('blur',resetInput);host.close();host.remove();returnToRamp(caught===true,wanted);}
   window.addEventListener('blur',resetInput);
   host.onkeyup=e=>{e.stopPropagation();held.delete(e.code);};
   host.oncancel=e=>{e.preventDefault();if(!sailing&&!ashore)close();};
