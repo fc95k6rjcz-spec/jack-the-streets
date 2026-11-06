@@ -8,7 +8,7 @@ window.walkIsland = function(host, wallet, buildings, save, title, board) {
   const sprite=new Image(), roofs=new Image();
   sprite.src='/assets/character-overhead.webp';roofs.src='/assets/coastal-city-roofs.webp';
   const row=Math.max(0,['redline','coast','nightshift','violet','classic','golden'].indexOf(wallet.appearance));
-  const catalogue={cabin:['Weatherboard cabin',0,0],shed:['Boat workshop',300,1],tower:['Lighthouse',600,-1],villa:['Pool villa',800,4],club:['Surf clubhouse',550,7],observatory:['Observatory',900,2]};
+  const catalogue={cabin:['Weatherboard cabin',0,0],shed:['Boat workshop',0,1],tower:['Lighthouse',0,-1],villa:['Pool villa',0,4],club:['Surf clubhouse',0,7],observatory:['Observatory',0,2]};
   const plots=[[-210,-145],[0,-175],[205,-135],[-210,100],[10,105],[220,100]];
   let x=-390,y=0,a=0,step=0,goal=null,frame,last=performance.now(),active=null,shopping=false,cameraX=0,cameraY=0,zoom=1;
   const keys=new Set();
