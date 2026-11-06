@@ -175,13 +175,13 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp, wanted=0) {
       if(clear){voyageEast+=wrapEast(x-pos.x);pos={x,y};}else speed*=.3;
       boat.setAttribute('transform','translate('+pos.x+' '+pos.y+') rotate('+heading*180/Math.PI+')');
       view(pos.x-360,pos.y-160);
-      const goal=worldLand?destination:home;
+      const goal=worldLand?destination:(start===dock?home:dock);
       const bearing=(Math.round(Math.atan2(wrapEast(goal.x-pos.x),pos.y-goal.y)*4/Math.PI)+8)%8;
       const longitude=wrapEast(pos.x-home.x+151.2*circumference/360)*360/circumference;
       const progress=Math.floor(Math.abs(voyageEast)*100/circumference);
-      status.textContent=Math.abs(longitude).toFixed(1)+(longitude<0?' W':' E')+' · World voyage '+progress+'% · City ramp '+['N','NE','E','SE','S','SW','W','NW'][bearing]+' · '+Math.round(Math.hypot(wrapEast(home.x-pos.x),home.y-pos.y)/10)+' boat lengths';
+      status.textContent=Math.abs(longitude).toFixed(1)+(longitude<0?' W':' E')+' · World voyage '+progress+'% · '+(goal===dock?'Your island':'City ramp')+' '+['N','NE','E','SE','S','SW','W','NW'][bearing]+' · '+Math.round(Math.hypot(wrapEast(goal.x-pos.x),goal.y-pos.y)/10)+' boat lengths';
       if(worldLand)status.textContent=destination.name+" · steer "+["N","NE","E","SE","S","SW","W","NW"][bearing]+" · "+(-pos.y/48).toFixed(1)+"° lat, "+(pos.x/48).toFixed(1)+"° lon · lap "+progress+"%";
-      berth=Math.abs(speed)<30?(worldLand?ports:[home,dock,...islets.map(q=>q.berth)]).find(p=>Math.hypot(pos.x-p.x,pos.y-p.y)<40):null;
+      berth=(worldLand?ports:[home,dock,...islets.map(q=>q.berth)]).find(p=>Math.hypot(wrapEast(pos.x-p.x),pos.y-p.y)<65);
       const chasing=wanted>=1;
       const target=chasing?pos:{x:start.x+145*Math.cos(now/9000),y:start.y+90*Math.sin(now/9000)};
       const angle=Math.atan2(target.y-marine.y,wrapEast(target.x-marine.x));
@@ -211,5 +211,5 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp, wanted=0) {
   host.onkeydown=e=>e.stopPropagation();
   host.querySelector('[data-plots]').onclick=e=>{const p=e.target.closest('[data-i]');if(p)select(Number(p.dataset.i));};
   paintPlots();boat.setAttribute('transform','translate(116 259)');
-  status.textContent='Your boat is ready at the ramp.';button('Take the helm',()=>drive(home,-0.35));const worldButton=button('World voyage from Sydney',()=>launchWorld(worldButton));button('Back to city',close);
+  status.textContent='Your boat is ready at the ramp.';button('Sail to your island',()=>drive(home,-0.35));const worldButton=button('World voyage from Sydney',()=>launchWorld(worldButton));button('Back to city',close);
 };

@@ -840,6 +840,10 @@ function gpsRoute(h,p){const [si,sj]=nearNode(h.x,h.y),[ti,tj]=nearNode(p.x,p.y)
 function openPhone(h){h.phone='list';const el=document.getElementById('phone');el.hidden=false;el.dataset.p=h.player;
   const L=document.getElementById('phoneList');L.innerHTML='';GPSDEST.forEach(([type,ic,n],k)=>{const p=gpsPoint(h,type);if(!p)return;const b=document.createElement('button');b.type='button';
     b.innerHTML=`<span>${ic}</span><span>${n}</span><b>${k+1}</b>`;b.onclick=()=>pickGps(h,type);L.appendChild(b);});
+  if(CAMP()&&mode===1&&!NET.on&&!h.inside&&!h.cuff&&!h.jail){
+    const trip=document.createElement('button');trip.type='button';
+    trip.textContent='⚓ Island trip · board your boat';trip.onclick=()=>launchIslandTrip(h);L.prepend(trip);
+  }
   if(h.gps){const b=document.createElement('button');b.type='button';b.innerHTML='<span>✖️</span><span>STOP ROUTE</span>';b.onclick=()=>{h.gps=null;closePhone(h);};L.appendChild(b);}
   sfx(900,.04,'square');setTimeout(()=>sfx(1200,.05,'square'),50);}
 function closePhone(h){h.phone=null;document.getElementById('phone').hidden=true;}
@@ -3614,6 +3618,10 @@ function nearestIslandRamp(h){return islandRamps().reduce((best,p)=>!best||Math.
     if(sh.type==="fuel"&&Math.hypot(h.x-sh.x,h.y-sh.y)<620){const y=sh.y-sh.h*.57-26;ctx.save();ctx.fillStyle="rgba(13,22,26,.9)";ctx.strokeStyle="#f4d14b";ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(sh.x-112,y-18,224,36,8);ctx.fill();ctx.stroke();ctx.fillStyle="#fff4c5";ctx.font="900 15px Chakra Petch,sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("PULL IN · STOP TO REFUEL",sh.x,y);ctx.restore();}
   }
 }
+function launchIslandTrip(h){closePhone(h);if(paused)return;paused=true;keys.clear();
+      const wallet=save[h.player];wallet.islandBuildings=wallet.islandBuildings||{};
+      window.openPrivateBay(wallet,()=>{persist();refreshBank();},(caught,heat)=>{paused=false;keys.clear();pressed.clear();if(caught)campRespawn(h,'BUSTED');else if(heat===0&&h.wanted>=1)clearPoliceWarning(h,'WATER POLICE LOST CONTACT');},h.wanted);
+    }
 function syncCityUI(){
   let el=document.getElementById("cityService");if(!el){el=document.createElement("button");el.id="cityService";el.type="button";el.style.cssText="position:fixed;z-index:7;bottom:calc(165px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);max-width:88vw;min-height:54px;padding:10px 20px;background:#f7d84e;color:#14242d;border:4px solid #14242d;box-shadow:5px 5px 0 #111;border-radius:8px;font:900 15px Chakra Petch,sans-serif;letter-spacing:.04em";document.body.append(el);}
   const h=cars.find(c=>c.human),show=h&&CAMP()&&state==="race"&&!paused&&!COMIC&&!rotationRequired()&&!h.inside;el.hidden=!show;if(!show)return;const sh=onShop(h),speed=Math.hypot(h.vx,h.vy);
@@ -3625,13 +3633,11 @@ function syncCityUI(){
     el.onclick=()=>h.flying?landPlane(h,field):takePlane(h);return;
   }
   const ramp=CAMP()&&mode===1&&!NET.on&&nearestIslandRamp(h);
+  if(h.boat&&mode===1&&!NET.on){el.hidden=false;el.disabled=false;el.textContent='SAIL TO THE ISLANDS';el.onclick=()=>launchIslandTrip(h);return;}
   if(ramp&&Math.hypot(h.x-ramp.x,h.y-ramp.y)<170){
     el.hidden=false;el.disabled=speed>50;
     el.textContent=speed>50?'SLOW DOWN AT THE RAMP':'⚓ LAUNCH YOUR BOAT';
-    el.onclick=()=>{if(paused)return;paused=true;keys.clear();
-      const wallet=save[h.player];wallet.islandBuildings=wallet.islandBuildings||{};
-      window.openPrivateBay(wallet,()=>{persist();refreshBank();},(caught,heat)=>{paused=false;keys.clear();pressed.clear();if(caught)campRespawn(h,'BUSTED');else if(heat===0&&h.wanted>=1)clearPoliceWarning(h,'WATER POLICE LOST CONTACT');},h.wanted);
-    };return;
+    el.onclick=()=>launchIslandTrip(h);return;
   }  if(sh?.type==="fuel"&&!h.foot){el.textContent=speed>45?"⛽ BRAKE AND STOP ON THE FORECOURT":"⛽ TAP TO REFUEL · "+money(Math.ceil(100-(h.fuel??100)))+" TO FILL · E";el.disabled=speed>45;el.onclick=()=>openFuelStop(h);}
   else if(h.wanted>0&&nearCop(h)<300){el.textContent="POLICE: STAY STILL TO COMPLY · MOVE TO RESIST";el.disabled=true;}
   else if(h.tyres){el.textContent=tyreCount(h)+" BLOWN TYRES · VISIT A REPAIR GARAGE";el.disabled=true;}else el.hidden=true;
