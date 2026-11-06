@@ -3,6 +3,7 @@ node_modules/
 comic-desktop.png
 comic-mobile.png
 assets/*.png
+!assets/jack-the-streets-home-*.png
 build-*.mjs
 final-polish.mjs
 prepare-art.mjs

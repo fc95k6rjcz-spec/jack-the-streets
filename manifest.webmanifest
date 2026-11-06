@@ -1,0 +1,25 @@
+{
+  "name": "Jack the Streets",
+  "short_name": "Jack Streets",
+  "description": "A comic-book street racing adventure through Sydney's Northern Beaches.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0b1930",
+  "theme_color": "#0b1930",
+  "icons": [
+    {
+      "src": "/assets/jack-the-streets-home-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/jack-the-streets-home-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
