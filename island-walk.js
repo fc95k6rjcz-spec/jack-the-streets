@@ -6,7 +6,8 @@ window.walkIsland = function(host, wallet, buildings, save, title, board) {
   host.append(scene);scene.querySelector('b').textContent=title;
   const canvas=scene.querySelector('canvas'),g=canvas.getContext('2d'),menu=scene.querySelector('[data-build]');
   const sprite=new Image(), roofs=new Image();
-  sprite.src='/assets/character-overhead.webp';roofs.src='/assets/coastal-city-roofs.webp';
+  sprite.src='/assets/character-overhead.webp';roofs.src='/assets/ink-buildings.webp';
+  const terrain=new Image();terrain.src='/assets/ink-island.webp';
   const row=Math.max(0,['redline','coast','nightshift','violet','classic','golden'].indexOf(wallet.appearance));
   const catalogue={cabin:['Weatherboard cabin',0,0],shed:['Boat workshop',0,1],tower:['Lighthouse',0,-1],villa:['Pool villa',0,4],club:['Surf clubhouse',0,7],observatory:['Observatory',0,2]};
   const plots=[[-210,-145],[0,-175],[205,-135],[-210,100],[10,105],[220,100]];
@@ -48,20 +49,22 @@ window.walkIsland = function(host, wallet, buildings, save, title, board) {
     const w=canvas.clientWidth,h=canvas.clientHeight,dpr=Math.min(devicePixelRatio,2);
     if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}
     zoom=Math.max(.82,Math.min(1.5,h/430));cameraX=x;cameraY=y;
-    g.setTransform(dpr,0,0,dpr,0,0);g.fillStyle='#237e91';g.fillRect(0,0,w,h);
+    g.setTransform(dpr,0,0,dpr,0,0);g.fillStyle='#0c5260';g.fillRect(0,0,w,h);
     g.translate(w/2,h/2);g.scale(zoom,zoom);g.translate(-x,-y);
     oval(0,0,466,316,'#78c9bb');oval(0,0,451,303,'#eed5a0');oval(0,0,417,270,'#8ca471');
     for(let n=0;n<180;n++){const px=Math.sin(n*79)*405,py=Math.cos(n*47)*266;if(px*px/169000+py*py/68600<1)oval(px,py,3,1,'#79945f');}
+    if(terrain.naturalWidth)g.drawImage(terrain,-450,-300,900,600);
     g.fillStyle='#78573d';g.fillRect(-469,-20,94,40);for(let n=0;n<9;n++){g.fillStyle='#ab845a';g.fillRect(-466+n*10,-19,8,38);}
     g.textAlign='center';g.font='bold 13px system-ui';g.fillStyle='#192d36';g.fillText('JETTY',-405,-30);
     plots.forEach(([px,py],i)=>{
       const key=buildings[i],b=catalogue[key];
       if(!b){g.strokeStyle='#ffe59a';g.setLineDash([7,5]);g.strokeRect(px-48,py-37,96,74);g.setLineDash([]);g.fillStyle='#294739';g.fillText('PLOT '+(i+1),px,py+4);return;}
-      g.fillStyle='#526849';g.fillRect(px-45,py-33,96,76);
-      if(b[2]>=0&&roofs.naturalWidth){const sw=roofs.width/3,sh=roofs.height/3;g.drawImage(roofs,b[2]%3*sw,Math.floor(b[2]/3)*sh,sw,sh,px-48,py-37,96,74);}
-      if(key==='tower'){oval(px,py,33,33,'#d4bf99');oval(px,py,24,24,'#a64238');oval(px,py,17,17,'#fff1d2');oval(px,py,9,9,'#ffd154');}
-      if(key==='villa'){g.fillStyle='#54cace';g.fillRect(px+19,py+9,24,19);}
-      if(key==='observatory'){oval(px,py,23,23,'#a6bcc8');g.fillStyle='#294653';g.fillRect(px-3,py-21,6,42);}
+      if(roofs.naturalWidth){
+        const cell=Object.keys(catalogue).indexOf(key),sw=roofs.width/3,sh=roofs.height/2;
+        oval(px+5,py+16,46,23,'rgba(37,42,31,.28)');
+        g.drawImage(roofs,(cell%3)*sw+3,Math.floor(cell/3)*sh+3,sw-6,sh-6,px-49,py-53,98,94);
+      }
+      g.lineWidth=3;g.strokeStyle='#f6e4bd';g.strokeText(b[0],px,py+55);
       g.fillStyle='#192d36';g.fillText(b[0],px,py+55);
     });
     g.save();g.translate(x,y);g.rotate(a+Math.PI/2);oval(2,5,16,11,'#46533f');

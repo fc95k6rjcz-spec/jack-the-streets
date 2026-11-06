@@ -11,8 +11,15 @@ window.openPrivateBay = function (wallet, saveIsland, returnToRamp, wanted=0) {
     tower:{name:'Lighthouse',cost:0,art:'<path d="M-13 19L-7 -29H7L14 19Z" fill="#fff0cd"/><path d="M-10 -10h20l2 12h-24z" fill="#c94436"/><path d="M-9 -29v-10H9v10z" fill="#ffca4b"/><path d="M-13 -39L0 -48 13 -39Z" fill="#9d302e"/>'}
   };
   host.innerHTML='<main style="max-width:900px;margin:auto;padding:10px 16px"><header style="display:flex;align-items:center;gap:12px"><img src="/boat-trailer.png" alt="" width="76"><h2 style="margin:6px 0">Jack’s Island</h2></header><svg viewBox="0 0 720 320" aria-label="Bay and island plots" style="width:100%;max-height:58dvh;background:#337f91;touch-action:none"><defs><pattern id="ripples" width="45" height="27" patternUnits="userSpaceOnUse"><path d="M3 13q6 -4 13 0t12 0" stroke="#91d1cc" fill="none" opacity=".46"/></pattern></defs><rect width="720" height="320" fill="url(#ripples)"/><path d="M0 180Q85 193 69 253T107 320H0Z" fill="#c6aa71"/><path d="M330 166Q347 77 421 57T554 51Q640 53 663 125T637 224Q581 275 484 266T356 229Z" fill="#dfc494" stroke="#8cd5c7" stroke-width="12"/><path d="M347 166Q360 89 427 71T552 64Q634 67 645 131T621 214Q566 251 479 250T369 217Z" fill="#789760"/><path d="M43 259h72m212 -76h53" stroke="#65503b" stroke-width="20"/><g data-plots></g><g data-boat><path d="M-17 -8Q4 -12 19 0Q5 12 -17 8Z" fill="#f3dfb0" stroke="#253438" stroke-width="3"/><rect x="-7" y="-5" width="12" height="10" fill="#286270"/></g><g data-jack></g></svg><p role="status"></p><div data-actions style="display:flex;gap:8px;flex-wrap:wrap"></div></main>';
+  host.classList.add('island-port');
   host.showModal();
   const svg=host.querySelector('svg'), boat=host.querySelector('[data-boat]'), action=host.querySelector('[data-actions]'), status=host.querySelector('[role=status]');
+  const islandShore=svg.querySelectorAll(':scope > path')[1];
+  const islandArt=document.createElementNS(svg.namespaceURI,'image');
+  for(const [k,v] of Object.entries({href:'/assets/ink-island.webp',x:330,y:43,width:336,height:225,preserveAspectRatio:'none'}))islandArt.setAttribute(k,v);
+  const mask=document.createElementNS(svg.namespaceURI,'clipPath');mask.id='bay-shore-clip';
+  mask.append(islandShore.cloneNode(false));svg.querySelector('defs').append(mask);
+  islandArt.setAttribute('clip-path','url(#bay-shore-clip)');svg.insertBefore(islandArt,svg.querySelectorAll(':scope > path')[3]);
   const dock={x:322,y:184}, home={x:116,y:259};
   let ashore=false, pos={...home}, frame=0;
   function button(label,fn,disabled=false){
