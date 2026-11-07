@@ -242,7 +242,7 @@ ol.res li.me{outline:2px solid var(--yellow)}
 @media(max-width:600px){#menu .logo{width:min(168px,46vw);height:min(168px,46vw)}}
 </style>
 
-<script src="/retail-district.js"></script><div id="worldDialogueLive" class="dialogue-sr" aria-live="polite"></div><aside id="policeChoice" hidden aria-label="Police surrender choices"><p></p><div><button type="button" data-surrender>HANDS UP · H</button><button type="button" data-resist>KEEP MOVING</button></div><small>Moving or firing cancels surrender.</small></aside>
+<script src="/retail-district.js"></script><script src="/interior-renderer.js"></script><div id="worldDialogueLive" class="dialogue-sr" aria-live="polite"></div><aside id="policeChoice" hidden aria-label="Police surrender choices"><p></p><div><button type="button" data-surrender>HANDS UP · H</button><button type="button" data-resist>KEEP MOVING</button></div><small>Moving or firing cancels surrender.</small></aside>
 <div id="stage"><canvas id="cv" aria-label="Jack the Streets game"></canvas></div>
 
 <div class="overlay" id="menu">
@@ -2899,10 +2899,8 @@ function furnish(b){if(b.furn)return b.furn;const id=Math.round(b.x0*7+b.y0*13),
     const t=opts[Math.floor(pick*opts.length)];F.push({t,x,y,w:70,h:56,col:['#e5392b','#2f8cff','#3fbf6a','#ffcc33','#a45cf0','#ff8a1f'][Math.floor(r()*6)]});}
   if(!b.jail&&r()<.22)b.loot={type:'cash',x:b.x0+w*(.25+r()*.5),y:b.y0+h*(.25+r()*.5),t:0};b.furn=F;return F;}
 function drawInteriorB(b,time){const F=furnish(b),w=b.x1-b.x0,h=b.y1-b.y0;ctx.save();
-  ctx.fillStyle={wood:'#c8a06a',tile:'#e8e4dc',carpet:'#8a9bb5',concrete:'#9aa0a6'}[b.floor];ctx.fillRect(b.x0,b.y0,w,h);
-  if(b.floor==='wood'){ctx.strokeStyle='rgba(90,60,30,.35)';ctx.lineWidth=2;for(let y=b.y0;y<b.y1;y+=24){ctx.beginPath();ctx.moveTo(b.x0,y);ctx.lineTo(b.x1,y);ctx.stroke();}}
-  else if(b.floor==='tile'||b.floor==='concrete'){ctx.fillStyle='rgba(0,0,0,.06)';for(let y=b.y0;y<b.y1;y+=40)for(let x=b.x0+((y-b.y0)/40%2)*40;x<b.x1;x+=80)ctx.fillRect(x,y,40,40);}
-  for(const f of F){ctx.save();ctx.translate(f.x,f.y);ctx.strokeStyle='#141414';ctx.lineWidth=3;
+  paintInteriorFloor(ctx,b);
+  for(const f of [...F].sort((a,b)=>(a.t==='rug'?-1:0)-(b.t==='rug'?-1:0))){ctx.save();ctx.translate(f.x,f.y);if(paintInteriorFurniture(ctx,f)){ctx.restore();continue;}ctx.strokeStyle='#141414';ctx.lineWidth=3;
     if(f.t==='bed'){ctx.fillStyle=f.col;ctx.fillRect(0,0,f.w,f.h);ctx.strokeRect(0,0,f.w,f.h);ctx.fillStyle='#fff';ctx.fillRect(4,4,18,f.h-8);ctx.strokeRect(4,4,18,f.h-8);}
     else if(f.t==='sofa'){ctx.fillStyle=f.col;ctx.fillRect(0,0,f.w,14);ctx.fillRect(0,0,12,f.h);ctx.fillRect(f.w-12,0,12,f.h);ctx.strokeRect(0,0,f.w,f.h*.75);ctx.fillStyle=shade(f.col,.2);ctx.fillRect(12,14,f.w-24,f.h*.5);}
     else if(f.t==='table'){ctx.fillStyle='#8a5a2b';ctx.fillRect(10,10,f.w-20,f.h-20);ctx.strokeRect(10,10,f.w-20,f.h-20);ctx.fillStyle='#5a3a1a';for(const [cx,cy] of [[2,f.h/2],[f.w-2,f.h/2],[f.w/2,2],[f.w/2,f.h-2]]){ctx.beginPath();ctx.arc(cx,cy,7,0,7);ctx.fill();ctx.stroke();}}
@@ -2917,7 +2915,7 @@ function drawInteriorB(b,time){const F=furnish(b),w=b.x1-b.x0,h=b.y1-b.y0;ctx.sa
       ctx.fillRect(-3,0,6,f.h);ctx.fillRect(f.w-3,0,6,f.h);ctx.fillStyle='#2a2d31';ctx.fillRect(0,f.h-3,f.w,6);if(open){ctx.fillStyle='#9aa0a6';ctx.fillRect(f.w*.35,f.h-3,f.w*.3,6);}}
     ctx.restore();}
   if(b.loot&&b.loot.t<=0){const L=b.loot,bob=Math.sin(time/250)*3;ctx.fillStyle='rgba(255,204,51,.35)';ctx.beginPath();ctx.arc(L.x,L.y,30,0,7);ctx.fill();ctx.font='30px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(L.type==='cash'?'💰':'🔫',L.x,L.y+bob);}
-  ctx.strokeStyle='#3a3d42';ctx.lineWidth=14;ctx.strokeRect(b.x0+7,b.y0+7,w-14,h-14);ctx.strokeStyle='#141414';ctx.lineWidth=3;ctx.strokeRect(b.x0,b.y0,w,h);
+  paintInteriorLight(ctx,b);
   if(b.jail){ctx.font='22px Bungee, Impact, sans-serif';ctx.textAlign='center';ctx.lineWidth=6;ctx.strokeStyle='#141414';ctx.strokeText('🚔 POLICE STATION & JAIL',(b.x0+b.x1)/2,b.y1-24);ctx.fillStyle='#2f8cff';ctx.fillText('🚔 POLICE STATION & JAIL',(b.x0+b.x1)/2,b.y1-24);}
   ctx.restore();}
 function lootCheck(c){const b=insideBuilding(c);if(!b)return;furnish(b);const L=b.loot;if(!L||L.t>0)return;if(Math.hypot(c.x-L.x,c.y-L.y)<34){L.t=300;if(L.type==='cash'){const amt=20+Math.floor(hashN(L.x|0)*60);save[c.player].cash+=amt;persist();refreshBank();popText(c.x,c.y-40,'💰 FOUND '+money(amt)+'!','#7be07b');sfx(1320,.06,'square');setTimeout(()=>sfx(1760,.1,'square'),60);}else{L.type='cash';L.t=0;}}}
