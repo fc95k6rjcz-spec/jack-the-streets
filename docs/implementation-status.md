@@ -15,13 +15,13 @@ npm run dev
 
 Open `http://127.0.0.1:4174`. The **SMS · JOBS** button opens dispatch, messages and the premium garage. Set the story aside from dispatch to take independent contracts; return to the story when ready. **OPEN MAP** joins other drivers on this server.
 
-Edit `city-expansion.inc.js`, then run `npm run build` to embed it into the standalone `index.html`. Existing core engine changes remain in `index.html`. No bundler is needed to play.
+Edit `city-expansion.inc.js`, `suburbs.inc.js` or `workshop.inc.js`, then run `npm run build` to embed it into the standalone `index.html`. Existing core engine changes remain in `index.html`. No bundler is needed to play.
 
 ## Implemented
 
 | Area | Current behaviour |
 | --- | --- |
-| Streets and suburbs | Named intersection signs and a persistent current-street/suburb display. |
+| Streets and suburbs | Named streets and suburb display; Northern Beaches residential parcels have individual roofs, driveways, lawns, pools, denser trees and some local cul-de-sacs. Shopping and industrial centres retain their separate layouts. |
 | Motorway | Three full-width lanes in each direction, median, shoulders, motorway traffic lanes and six crossing decks on the campaign grid. Crossing vehicles use separate collision layers. |
 | Bridges and tunnel | Bridge details on existing water crossings; a lit harbour-tunnel segment hides the player from airborne observation and helicopter fire. |
 | Street life | Existing pedestrians/crossings retained; bus stops, trees, street signs and lamps added. Motorway crossings exclude ordinary pedestrian crossing spawns. |
