@@ -4,7 +4,7 @@ const STREET_NAMES={
  nb:{h:['Palm Beach Road','Avalon Parade','Mona Vale Road','Powderworks Road','Wakehurst Parkway','Warringah Road','Pittwater Road','Sydney Road'],v:['Forest Way','Coastal Motorway','McCarrs Creek Road','Wakehurst Drive','Warringah Expressway','Condamine Street','Barrenjoey Road','Pittwater Road','Ocean Street','Beach Road']},
  syd:{h:['Military Road','Pacific Highway','Cahill Expressway','Bridge Street','Oxford Street','Parramatta Road','Cleveland Street','Anzac Parade'],v:['Victoria Road','Harbour Motorway','Harris Street','George Street','Harbour Tunnel Road','Elizabeth Street','Bourke Street','Darlinghurst Road','Old South Head Road','Bondi Road']}
 };
-const ROAD_NAMES=STREET_NAMES[CITY]||STREET_NAMES.nb;
+let ROAD_NAMES=STREET_NAMES[CITY]||STREET_NAMES.nb;
 function streetAt(h){const a=nearLine(h.y,IY),b=nearLine(h.x,IX);return a.d<b.d?ROAD_NAMES.h[a.i%ROAD_NAMES.h.length]:ROAD_NAMES.v[b.i%ROAD_NAMES.v.length];}
 function isFreewayTraffic(t){return t.axis==='v'&&Math.abs(t.lane-CITY_WORKS.freewayX)<180;}
 function inHarbourTunnel(h){const t=CITY_WORKS.tunnel;return !!(t&&!h.flying&&Math.abs(h.x-t.x)<90&&h.y>t.y0&&h.y<t.y1);}
@@ -12,12 +12,12 @@ function cityLayer(c){if(c.inside||c.flying||c.foot)return 0;for(const p of CITY
 // Profiles describe the fictional game districts, not real-world crime statistics.
 const DISTRICT_STYLES={coast:{pave:'#c2ba9f',park:'#7d965b',risk:.05},village:{pave:'#a8ada7',park:'#6b895d',risk:.10},city:{pave:'#8b9298',park:'#55775e',risk:.18},industrial:{pave:'#747a79',park:'#67745a',risk:.6}};
 let DISTRICT_TILE=null;const DISTRICT_CACHE=new Map();
-function districtAt(x,y){const name=suburbAt(x,y);if(/BROOKVALE|INDUSTRIAL|DOCK|WORKS|DEE WHY/i.test(name))return DISTRICT_STYLES.industrial;if(/DOWNTOWN|CITY|CBD|SURRY|DARLINGHURST|CHIPPENDALE/i.test(name))return DISTRICT_STYLES.city;if(/BEACH|AVALON|PALM|MANLY|BONDI|COAST|PITTWATER/i.test(name))return DISTRICT_STYLES.coast;return DISTRICT_STYLES.village;}
+function districtAt(x,y){const name=suburbAt(x,y);if(CITY==='syd'&&!/BONDI|BRONTE|COOGEE|CLOVELLY|MAROUBRA/.test(name))return /MASCOT|AIRPORT/.test(name)?DISTRICT_STYLES.industrial:DISTRICT_STYLES.city;if(/BROOKVALE|INDUSTRIAL|DOCK|WORKS|DEE WHY/i.test(name))return DISTRICT_STYLES.industrial;if(/DOWNTOWN|CITY|CBD|SURRY|DARLINGHURST|CHIPPENDALE/i.test(name))return DISTRICT_STYLES.city;if(/BEACH|AVALON|PALM|MANLY|BONDI|COAST|PITTWATER/i.test(name))return DISTRICT_STYLES.coast;return DISTRICT_STYLES.village;}
 function districtSurface(c,r,kind){if(DISTRICT_TILE!==tile){DISTRICT_CACHE.clear();DISTRICT_TILE=tile;}const key=c+','+r+','+kind;if(!DISTRICT_CACHE.has(key)){const profile=districtAt((c+.5)*T,(r+.5)*T),base=kind===PAVE?profile.pave:profile.park;DISTRICT_CACHE.set(key,shade(base,((c*13+r*7)%9-4)*.009));}return DISTRICT_CACHE.get(key);}
 function freewayAt(y){const base=CITY_WORKS.freewayX;if(base==null)return NaN;for(let j=0;j<IY.length-1;j++){if(y>=IY[j]&&y<=IY[j+1]){const t=(y-IY[j])/(IY[j+1]-IY[j]);return base+Math.sin(t*Math.PI)**4*44*(j%2?-1:1);}}return base;}
 function freewayPath(offset,y0,y1){ctx.beginPath();for(let y=y0;y<=y1+15;y+=15){const yy=Math.min(y,y1),x=freewayAt(yy)+offset;if(y===y0)ctx.moveTo(x,yy);else ctx.lineTo(x,yy);}}
 function prepareCityWorks(){
- if(CITY_WORKS.tile===tile)return;Object.assign(CITY_WORKS,{tile,parks:[],pads:[],stops:[],bridges:[],tunnel:null,overpasses:[],freewayX:IX[1]});
+ if(CITY_WORKS.tile===tile)return;ROAD_NAMES=STREET_NAMES[CITY]||STREET_NAMES.nb;Object.assign(CITY_WORKS,{tile,parks:[],pads:[],stops:[],bridges:[],tunnel:null,overpasses:[],freewayX:IX[1]});
  if(curMap!=='big'){CITY_WORKS.freewayX=null;return;}
  for(let r=0;r<ROWS;r++)for(let c=RC[1]-1;c<=RC[1]+2;c++)if(at(c,r)!==BUILD)set(c,r,ROAD);
  for(let i=trees.length-1;i>=0;i--)if(Math.abs(trees[i].x-CITY_WORKS.freewayX)<205)trees.splice(i,1);

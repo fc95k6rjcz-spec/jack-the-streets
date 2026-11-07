@@ -4,7 +4,7 @@
 
 Run `npm install` and `npm run dev`, then open http://127.0.0.1:4174. SMS dispatch has 300 route contracts, the premium garage and messages; Open Map supports up to eight drivers on the companion server. See [implementation status](docs/implementation-status.md) for the completed changes, verification and remaining production work. The iOS StoreKit wrapper is in `ios/JackTheStreets.xcodeproj`; live App Store products/signing are not configured.
 
-Run `npm test` for automated checks and `npm run test:browser` for the interactive browser suite. After editing `city-expansion.inc.js`, `suburbs.inc.js` or `workshop.inc.js`, run `npm run build`. The Northern Beaches residential pass adds individual houses with precise collision footprints, lawns, driveways, pools, mature trees and local cul-de-sacs; commercial centres retain their existing building parcels.
+Run `npm test` for automated checks and `npm run test:browser` for the interactive browser suite. After editing `city-expansion.inc.js`, `suburbs.inc.js`, `urban.inc.js` or `workshop.inc.js`, run `npm run build`. The Northern Beaches residential pass adds individual houses with precise collision footprints, lawns, driveways, pools, mature trees and local cul-de-sacs; Sydney and commercial centres use denser perimeter blocks, terrace rows, loading courts and through service lanes. City diagonal-road corridors remain clear of building collisions.
 
 Top-down street racing / cop-chase game in a single HTML file.
 

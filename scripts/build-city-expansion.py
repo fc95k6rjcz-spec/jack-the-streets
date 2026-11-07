@@ -3,7 +3,7 @@ from pathlib import Path
 root=Path(__file__).resolve().parents[1]
 p=root/'index.html'
 s=p.read_text()
-modules=[('CITY EXPANSION','city-expansion.inc.js'),('SUBURBAN NEIGHBOURHOODS','suburbs.inc.js'),('SPECIALTY WORKSHOPS','workshop.inc.js')]
+modules=[('CITY EXPANSION','city-expansion.inc.js'),('SUBURBAN NEIGHBOURHOODS','suburbs.inc.js'),('URBAN NEIGHBOURHOODS','urban.inc.js'),('SPECIALTY WORKSHOPS','workshop.inc.js')]
 for name,file in modules:
  begin='// '+name+' BEGIN';end='// '+name+' END'
  if begin in s:
