@@ -1,0 +1,7 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const scope={window:{}};vm.runInNewContext(fs.readFileSync(new URL('../assets/northern-beaches-geography.js',import.meta.url),'utf8'),scope);const d=scope.window.JACK_GEOGRAPHY;
+test('regional terrain covers its dimensions and roads form one connected network',()=>{assert.equal(d.terrain.filter((_,i)=>i%2).reduce((a,b)=>a+b,0),d.cols*d.rows);const links=d.nodes.map(()=>[]);for(const [a,b,kind,name,,points] of d.roads){assert.ok(kind>=1&&kind<=4);assert.ok(name<d.names.length);assert.ok(points.length>=4&&points.length%2===0);links[a].push(b);links[b].push(a)}const seen=new Set([0]),q=[0];for(let i=0;i<q.length;i++)for(const n of links[q[i]])if(!seen.has(n)){seen.add(n);q.push(n)}assert.equal(seen.size,d.nodes.length);assert.ok(d.roads.length>20000)});
+test('regional atlas includes coastal towns, explicit attribution and independent gameplay status',()=>{for(const name of ['Manly','Mona Vale','Dee Why','Sydney CBD','Terrey Hills'])assert.ok(d.labels.some(p=>p[0]===name));assert.match(d.credits,/CC BY 4.0/);assert.ok(d.land.length);const source=fs.readFileSync(new URL('../assets/regional-map.js',import.meta.url),'utf8');new vm.Script(source);assert.match(source,/driving world is being rebuilt/);assert.match(source,/regional-map-close/);assert.match(fs.readFileSync(new URL('../index.html',import.meta.url),'utf8'),/assets\/regional-map.js/)});

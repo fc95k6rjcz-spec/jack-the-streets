@@ -295,7 +295,7 @@ ol.res li.me{outline:2px solid var(--yellow)}
 @media(max-width:600px){#menu .logo{width:min(168px,46vw);height:min(168px,46vw)}}
 </style>
 
-<script src="/retail-district.js"></script><script src="/interior-renderer.js"></script><div id="worldDialogueLive" class="dialogue-sr" aria-live="polite"></div><aside id="policeChoice" hidden aria-label="Police surrender choices"><p></p><div><button type="button" data-surrender>HANDS UP · H</button><button type="button" data-resist>KEEP MOVING</button></div><small>Moving or firing cancels surrender.</small></aside>
+<script defer src="assets/regional-map.js"></script><script src="/retail-district.js"></script><script src="/interior-renderer.js"></script><div id="worldDialogueLive" class="dialogue-sr" aria-live="polite"></div><aside id="policeChoice" hidden aria-label="Police surrender choices"><p></p><div><button type="button" data-surrender>HANDS UP · H</button><button type="button" data-resist>KEEP MOVING</button></div><small>Moving or firing cancels surrender.</small></aside>
 <div id="stage"><canvas id="cv" aria-label="Jack the Streets game"></canvas></div>
 
 <div class="overlay" id="menu">
@@ -1240,6 +1240,7 @@ const tapped=(set,a)=>set[a].some(k=>pressed.has(k));
 
 /* ---------- Game state ---------- */
 let cup=null,pendingCup=false;
+let regionalMapPreviousPause=false;document.addEventListener('regional-map-open',()=>{regionalMapPreviousPause=paused;paused=true;keys.clear()});document.addEventListener('regional-map-close',()=>{paused=regionalMapPreviousPause;keys.clear()});
 let paused=false,gtype='race';const CHASE=()=>gtype==='chase',BATTLE=()=>gtype==='battle',CAMP=()=>gtype==='campaign',FREE=()=>gtype==='chase'||gtype==='battle'||gtype==='campaign';
 let state='menu',mode=1,cars=[],shots=[],hazards=[],crates=[],coins=[],parts=[],skids=[],raceT=0,countT=0,finishCount=0,endT=0,shake=0,lastBeep=4;
 const ITEMS=['missile','missile','oil','mine','boost','boost','shield'];
