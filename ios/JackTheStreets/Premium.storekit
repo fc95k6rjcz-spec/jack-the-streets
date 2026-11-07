@@ -421,6 +421,66 @@
       "productID": "com.justinsapps.jackthestreets.upgrade.f458.tyresarmour",
       "referenceName": "f458 \u00b7 tyres and armour package",
       "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "5e94c106-5350-59f5-86f3-331dc3d15975",
+      "localizations": [
+        {
+          "description": "10,000 game cash \u00b7 one-time consumable cash pack",
+          "displayName": "10,000 game cash",
+          "locale": "en_AU"
+        }
+      ],
+      "productID": "com.justinsapps.jackthestreets.cash.pocket",
+      "referenceName": "10,000 game cash",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "9.99",
+      "familyShareable": false,
+      "internalID": "4afd9ba8-f2ed-584d-b37b-2feec7691330",
+      "localizations": [
+        {
+          "description": "25,000 game cash \u00b7 one-time consumable cash pack",
+          "displayName": "25,000 game cash",
+          "locale": "en_AU"
+        }
+      ],
+      "productID": "com.justinsapps.jackthestreets.cash.street",
+      "referenceName": "25,000 game cash",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "19.99",
+      "familyShareable": false,
+      "internalID": "b90c3427-1054-5530-b535-7237bf80bd36",
+      "localizations": [
+        {
+          "description": "60,000 game cash \u00b7 one-time consumable cash pack",
+          "displayName": "60,000 game cash",
+          "locale": "en_AU"
+        }
+      ],
+      "productID": "com.justinsapps.jackthestreets.cash.garage",
+      "referenceName": "60,000 game cash",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "39.99",
+      "familyShareable": false,
+      "internalID": "b2499fb6-e1fd-5762-8d16-2f580a17a80f",
+      "localizations": [
+        {
+          "description": "150,000 game cash \u00b7 one-time consumable cash pack",
+          "displayName": "150,000 game cash",
+          "locale": "en_AU"
+        }
+      ],
+      "productID": "com.justinsapps.jackthestreets.cash.empire",
+      "referenceName": "150,000 game cash",
+      "type": "Consumable"
     }
   ],
   "settings": {

@@ -2,16 +2,30 @@ import Foundation
 import StoreKit
 import WebKit
 
-/// The web game receives ownership only from StoreKit-verified, non-consumable entitlements.
+/// The web game receives ownership only from StoreKit-verified lifetime entitlements and consumable cash transactions.
 @MainActor
 final class StoreKitBridge: NSObject, WKScriptMessageHandlerWithReply, WKNavigationDelegate {
     weak var webView: WKWebView?
     static let prefix = "com.justinsapps.jackthestreets"
     static let cars = ["volt", "apex", "phantom", "nova", "circuit", "rocket", "f458"]
     static let upgrades = ["engine", "security", "tyresarmour"]
+    static let cashIDs: Set<String> = Set(["pocket", "street", "garage", "empire"].map { "\(prefix).cash.\($0)" })
+    private var activeWallet: String?
+    private var walletBindings: [String: String] {
+        get { UserDefaults.standard.dictionary(forKey: "cashWalletBindings") as? [String: String] ?? [:] }
+        set { UserDefaults.standard.set(newValue, forKey: "cashWalletBindings") }
+    }
+    private var productWallets: [String: String] {
+        get { UserDefaults.standard.dictionary(forKey: "cashProductWallets") as? [String: String] ?? [:] }
+        set { UserDefaults.standard.set(newValue, forKey: "cashProductWallets") }
+    }
+    private var deliveredCash: Set<String> {
+        get { Set(UserDefaults.standard.stringArray(forKey: "deliveredCashTransactions") ?? []) }
+        set { UserDefaults.standard.set(Array(newValue), forKey: "deliveredCashTransactions") }
+    }
     static let productIDs: Set<String> = Set(cars.flatMap { car in
         ["\(prefix).car.\(car)"] + upgrades.map { "\(prefix).upgrade.\(car).\($0)" }
-    })
+    }).union(cashIDs)
     private var pending: [UInt64: StoreKit.Transaction] = [:]
     private var updateTask: Task<Void, Never>?
 
@@ -43,6 +57,9 @@ final class StoreKitBridge: NSObject, WKScriptMessageHandlerWithReply, WKNavigat
         }
         Task { @MainActor in
             do {
+                if let wallet = body["wallet"] as? String, wallet.hasPrefix("pileup-gp-save-v1") {
+                    activeWallet = wallet
+                }
                 switch action {
                 case "products":
                     let products = try await Product.products(for: Array(Self.productIDs))
@@ -70,6 +87,15 @@ final class StoreKitBridge: NSObject, WKScriptMessageHandlerWithReply, WKNavigat
                     guard let product = try await Product.products(for: [id]).first else {
                         replyHandler(nil, "This product is not available in the App Store yet."); return
                     }
+                    if Self.cashIDs.contains(id) {
+                        guard product.type == .consumable else { replyHandler(nil, "This cash pack is not configured as a consumable product."); return }
+                        guard let wallet = activeWallet else { replyHandler(nil, "Open your game profile before buying cash."); return }
+                        guard productWallets[id] == nil || productWallets[id] == wallet else {
+                            await notifyEntitlements()
+                            replyHandler(nil, "A previous cash purchase is awaiting approval or delivery. Reopen its original profile to complete it."); return
+                        }
+                        productWallets[id] = wallet
+                    }
                     switch try await product.purchase() {
                     case .success(let verification):
                         guard case .verified(let transaction) = verification,
@@ -77,11 +103,13 @@ final class StoreKitBridge: NSObject, WKScriptMessageHandlerWithReply, WKNavigat
                             replyHandler(nil, "Apple could not verify the purchase."); return
                         }
                         pending[transaction.id] = transaction
+                        bindCashWallet(transaction)
                         // JavaScript acknowledges only after ownership was delivered and persisted.
                         replyHandler(["status": "purchased", "entitlements": await entitlements()], nil)
                     case .pending:
                         replyHandler(["status": "pending"], nil)
                     case .userCancelled:
+                        productWallets.removeValue(forKey: id)
                         replyHandler(["status": "cancelled"], nil)
                     @unknown default:
                         replyHandler(["status": "unavailable"], nil)
@@ -90,6 +118,10 @@ final class StoreKitBridge: NSObject, WKScriptMessageHandlerWithReply, WKNavigat
                     let ids = body["transactions"] as? [String] ?? []
                     for raw in ids {
                         if let id = UInt64(raw), let transaction = pending.removeValue(forKey: id) {
+                            if Self.cashIDs.contains(transaction.productID) {
+                                deliveredCash.insert(String(transaction.id))
+                                productWallets.removeValue(forKey: transaction.productID)
+                            }
                             await transaction.finish()
                         }
                     }
@@ -118,7 +150,20 @@ final class StoreKitBridge: NSObject, WKScriptMessageHandlerWithReply, WKNavigat
                   Self.productIDs.contains(transaction.productID) else { continue }
             pending[transaction.id] = transaction
         }
-        return ["ids": Array(Set(ids)).sorted(), "transactions": pending.keys.map(String.init)]
+        var cash: [[String: String]] = []
+        for transaction in pending.values where Self.cashIDs.contains(transaction.productID) && transaction.revocationDate == nil && transaction.productType == .consumable {
+            bindCashWallet(transaction)
+            let id = String(transaction.id)
+            if !deliveredCash.contains(id) {
+                cash.append(["id": id, "productID": transaction.productID, "wallet": walletBindings[id] ?? ""])
+            }
+        }
+        return ["ids": Array(Set(ids)).sorted(), "transactions": pending.keys.map(String.init), "cashPurchases": cash]
+    }
+    private func bindCashWallet(_ transaction: StoreKit.Transaction) {
+        guard Self.cashIDs.contains(transaction.productID), walletBindings[String(transaction.id)] == nil,
+              let wallet = productWallets[transaction.productID] ?? activeWallet else { return }
+        walletBindings[String(transaction.id)] = wallet
     }
     private func notifyEntitlements() async {
         let payload = await entitlements()
