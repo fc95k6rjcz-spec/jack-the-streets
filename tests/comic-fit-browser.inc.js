@@ -1,7 +1,10 @@
+const loaderTemplate=document.getElementById('comicLoader').cloneNode(true);
 window.checkComicFit=async function(size){
  const el=document.getElementById('comic');el.style.padding=`${size.top||0}px ${size.right||0}px ${size.bottom||0}px ${size.left||0}px`;
  const viewport=window.visualViewport,oldHeight=viewport&&Object.getOwnPropertyDescriptor(viewport,'height');if(size.visibleHeight&&viewport)Object.defineProperty(viewport,'height',{configurable:true,get:()=>size.visibleHeight});
  const failures=[];let checked=0;const bounds={left:size.left||0,top:size.top||0,right:size.w-(size.right||0),bottom:(size.visibleHeight||size.h)-(size.bottom||0)};
+ const loader=loaderTemplate.cloneNode(true);document.getElementById('comicLoader')?.remove();document.body.append(loader);loader.style.padding=`${size.top||0}px ${size.right||0}px ${size.bottom||0}px ${size.left||0}px`;syncLoaderViewport();await new Promise(r=>requestAnimationFrame(r));
+ const loaderErrors=[];for(const node of [loader.querySelector('.loader-card'),loader.querySelector('footer'),loader.querySelector('button'),loader.querySelector('progress')]){const r=node.getBoundingClientRect();if(r.left<bounds.left-1||r.right>bounds.right+1||r.top<bounds.top-1||r.bottom>bounds.bottom+1||node.scrollWidth>node.clientWidth+1)loaderErrors.push('Loader overflows: '+node.tagName);}if(loaderErrors.length)failures.push({name:'opening loader',errors:loaderErrors});checked++;loader.remove();
  for(const name of window.comicFitAPI.names){
   window.comicFitAPI.close();window.comicFitAPI.open(name);
   const count=window.comicFitAPI.count();

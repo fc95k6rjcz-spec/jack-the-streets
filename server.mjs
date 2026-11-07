@@ -12,7 +12,7 @@ export function createGameServer({port=4174,host='127.0.0.1'}={}){
   if(url.pathname==='/health'){res.setHeader('Content-Type','application/json');res.end(JSON.stringify({ok:true,players:[...rooms.values()].reduce((n,r)=>n+r.players.size,0)}));return;}
   // Serve only the game and its public assets; never .git, source or server files.
   let relative;try{relative=url.pathname==='/'?'index.html':decodeURIComponent(url.pathname.slice(1));}catch{res.writeHead(400);res.end('Invalid path');return;}
-  if(!/^(index\.html|manifest\.webmanifest|apple-touch-icon\.png|boat-trailer\.png|world-land\.json|private-bay\.js|island-walk\.js|assets\/[a-zA-Z0-9_.-]+)$/.test(relative)){res.writeHead(404);res.end('Not found');return;}
+  if(!/^(index\.html|manifest\.webmanifest|apple-touch-icon\.png|boat-trailer\.png|world-land\.json|private-bay\.js|island-walk\.js|retail-district\.js|interior-renderer\.js|assets\/[a-zA-Z0-9_.-]+)$/.test(relative)){res.writeHead(404);res.end('Not found');return;}
   try{const body=await readFile(path.join(root,relative));const ext=path.extname(relative);res.setHeader('Content-Type',({'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json','.webmanifest':'application/manifest+json','.webp':'image/webp','.png':'image/png'})[ext]||'application/octet-stream');res.setHeader('X-Content-Type-Options','nosniff');res.end(body);}catch{res.writeHead(404);res.end('Not found');}
  });
  const wss=new WebSocketServer({noServer:true,maxPayload:4096});
