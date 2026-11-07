@@ -491,8 +491,8 @@ function drawComicTree(t,x,y){const im=WORLD_ART.trees;if(!im.complete||!im.natu
 
 const TINT={};
 function tinted(t,id,paint){const key=id+paint;if(TINT[key])return TINT[key];const w=t.naturalWidth,h=t.naturalHeight,c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');
-  g.drawImage(t,0,0);const n=parseInt(paint.slice(1),16),lum=((n>>16)*.3+((n>>8)&255)*.59+(n&255)*.11)/255;
-  const pixels=g.getImageData(0,0,w,h),v=pixels.data,tr=n>>16,tg=(n>>8)&255,tb=n&255,tl=(tr*.3+tg*.59+tb*.11)||1;
+  g.drawImage(t,0,0);const n=parseInt(paint.slice(1),16);
+  const pixels=g.getImageData(0,0,w,h),v=pixels.data,tr=n>>16,tg=(n>>8)&255,tb=n&255;
   for(let i=0;i<v.length;i+=4){const r=v[i],gg=v[i+1],b=v[i+2],hi=Math.max(r,gg,b),lo=Math.min(r,gg,b),l=r*.3+gg*.59+b*.11;if(v[i+3]<10||l<35||hi-lo<22||b>r*1.15&&gg>r*1.1)continue;const k=l/150;v[i]=clamp(tr*k,0,255);v[i+1]=clamp(tg*k,0,255);v[i+2]=clamp(tb*k,0,255);}g.putImageData(pixels,0,0);
   g.globalCompositeOperation='destination-in';g.drawImage(t,0,0);c.naturalWidth=w;c.naturalHeight=h;c.complete=true;return TINT[key]=c;}
 const topOf=(d,lk)=>{const comic=comicCar(d,lk);if(comic)return comic;const t=TOPIMG[d.id];if(!(t&&t.complete&&t.naturalWidth))return null;return lk&&lk.paint?tinted(t,d.id,lk.paint):t;};
