@@ -1832,7 +1832,7 @@ const GRACE=20,BTIME=180,BCOL=['#ff3b3b','#ffd23f','#36d06a','#2f8cff','#ff5fbf'
 /* ---------- First-time tips (tutorial) ---------- */
 function keyNames(c){const two=mode===2;if(touchOn())return{go:'the STICK',lr:'the STICK',fire:'FIRE',drift:'turn hard',nitro:'NITRO',exit:'GET IN / OUT'};return c.player==='p2'&&two?{go:'W',lr:'A D',fire:'F',drift:'L-SHIFT',nitro:'G',exit:'V'}:{go:'↑',lr:'← →',fire:'SPACE',drift:'SHIFT',nitro:'CTRL',exit:'ENTER'};}
 function tipsFor(c){const k=keyNames(c);
-  if(CAMP())return[['🏙️','Welcome to the city! Hold '+k.go+' to drive · '+k.lr+' to steer'],['🎯','Drive into a glowing circle to play: 🏁 RACE · ☕ 2 PLAYERS · 🚨 COP CHASE · 🛠️ GARAGE'],['❗','Drive into the yellow ! for a MISSION'],['📱','Press '+(touchOn()?'📱':'N')+' for your PHONE · it shows the way'],['🚶','Press '+k.exit+' to get out · walk up to any car to steal it']];
+  if(CAMP())return[['🏙️','Welcome to the city! Hold '+k.go+' to drive · '+k.lr+' to steer'],['🎯','Drive into a glowing circle to play: 🏁 RACE · 🚨 COP CHASE · 🛠️ GARAGE'],['❗','Drive into the yellow ! for a MISSION'],['📱','Press '+(touchOn()?'📱':'N')+' for your PHONE · it shows the way'],['🚶','Press '+k.exit+' to get out · walk up to any car to steal it']];
   if(BATTLE())return[['🎈','Keep your 3 balloons safe!'],['🚗','Hold '+k.go+' to drive · '+k.lr+' to steer'],['❓','Drive through crates to get weapons'],['🚀','Press '+k.fire+' to fire and POP their balloons'],['💥','Ram cars fast to pop a balloon too'],['🏆','Last car with balloons wins!']];
   if(CHASE())return[['🚨','Escape the police for as long as you can!'],['🚗','Hold '+k.go+' to drive · '+k.lr+' to steer'],['🚶','Slow down and press '+k.exit+' to get out of the car'],['🕵️','Get out where no cop can see you and they lose you'],['🌊','Light water is OK, dark DEEP water = you sink!'],['⏸️','Press P any time to pause']];
   return[['🏁','Race 3 laps around the city!'],['🚗','Hold '+k.go+' to drive · '+k.lr+' to steer'],['🟡','Follow the yellow dots and the big arrow'],['🚗','Brake before corners. Accelerate smoothly on the way out.'],['💨','Hold '+k.drift+' while turning to drift, let go for a BOOST'],['⏸️','Press P any time to pause']];}
@@ -2056,7 +2056,7 @@ function drawNetHUD(vp,c,u){if(!NET.on||!NET.playing)return;const cxm=vp.x+vp.w/
 /* ---------- City hub: drive to a place to pick what to play ---------- */
 let HUBP=null;
 function portals(){return[{k:'garage',ic:'🛠️',n:'GARAGE',sub:'cars & upgrades',c:'#2f8cff',p:RD(3,2,420)},{k:'race',ic:'🏁',n:'RACE TRACK',sub:'race 5 cars',c:'#ffcc33',p:RD(4,1,420)},
-  {k:'cafe',ic:'☕',n:'CAFÉ',sub:'2 players',c:'#c77dff',p:RD(5,2,420)},{k:'cup',ic:'🏆',n:'STADIUM',sub:'win the cup',c:'#3fd06a',p:RD(6,1,420)},
+  {k:'cup',ic:'🏆',n:'STADIUM',sub:'win the cup',c:'#3fd06a',p:RD(6,1,420)},
   {k:'station',ic:'🚔',n:'POLICE STATION',sub:'station · no race portal',c:'#2a5bff',p:RD(4,3,420),disabled:true}].filter(p=>!p.disabled);}
 const HUBON=()=>CAMP()&&mode===1&&!NET.on&&state==='race';
 /* ---------- Comic book story pages ---------- */
@@ -2232,14 +2232,10 @@ function goHub(){showMenuReal();document.getElementById('menu').hidden=true;gtyp
 function updatePortals(h){if(!HUBON()||h.player!=='p1'||h.inside)return;const busy=h.hot||MS||cops.some(c=>c.target===h&&!h.hidden);for(const P of portals()){const d=Math.hypot(h.x-P.p.x,h.y-P.p.y);if(d<120){if(busy){h.portalLock=P.k;return;}if(h.portalLock!==P.k){h.portalLock=P.k;openPortal(P);}return;}}
   if(h.portalLock&&portals().every(P=>Math.hypot(h.x-P.p.x,h.y-P.p.y)>240))h.portalLock=null;}
 function portalBody(html){document.getElementById('portalBody').innerHTML=html;}
-function openPortal(P){HUBP=P;paused=true;keys.clear();document.getElementById('portal').hidden=false;sfx(660,.1,'triangle');setTimeout(()=>sfx(990,.12,'triangle'),90);say(P.n.toLowerCase());
+function openPortal(P){if(!P||!portals().some(p=>p.k===P.k))return;HUBP=P;paused=true;keys.clear();document.getElementById('portal').hidden=false;sfx(660,.1,'triangle');setTimeout(()=>sfx(990,.12,'triangle'),90);say(P.n.toLowerCase());
   const head=`<h1>${P.ic} ${P.n}</h1>`;
   if(P.k==='race'){portalBody(head+`<p>Pick a track and race 5 other cars!</p><div class="ptracks">${TRACKS.map((t,i)=>`<button type="button" data-t="${i}"><img src="${TRACKPIC[i]}" alt=""><span>${t.n.toUpperCase()}</span></button>`).join('')}</div>`);
     document.querySelectorAll('#portalBody [data-t]').forEach(b=>b.onclick=()=>portalGo('race',+b.dataset.t));}
-  else if(P.k==='cafe'){portalBody(head+`<p>Play with someone else! What do you want to play?</p>${[['race','🏁 RACE'],['cup','🏆 CUP'],['chase','🚨 COP CHASE'],['campaign','🏙️ CITY + MISSIONS']].map(([g,l])=>`<button class="btn" data-g="${g}" type="button">${l}<small>2 players on this screen · one each side</small></button>`).join('')}
-      <button class="btn money" id="pfriend" type="button">🌐 PLAY WITH A FRIEND<small>on their own device</small></button>`);
-    document.querySelectorAll('#portalBody [data-g]').forEach(b=>b.onclick=()=>{closePortal(true);const g=b.dataset.g;bankPartial();paused=false;pendingCup=false;cup=g==='cup'?{race:0,points:{},cols:{},roster:null}:null;gtype=g==='cup'?'race':g;mode=2;start(2);});
-    document.getElementById('pfriend').onclick=()=>{closePortal(true);bankPartial();state='menu';openNet();};}
   else if(P.k==='garage'){portalBody(head+`<p>Buy cars, upgrade and paint them.</p><button class="btn" id="pgo" type="button">OPEN THE GARAGE<small>then tap GO to drive</small></button>`);document.getElementById('pgo').onclick=()=>{closePortal(true);bankPartial();gtype='campaign';openSelect(1);};}
   else{const T={cup:'Race all 4 tracks and win the trophy!',chase:'Escape the police for as long as you can!',battle:'Pop everyone\'s balloons! Last car wins!'}[P.k];
     portalBody(head+`<p>${T}</p><button class="btn" id="pgo" type="button">START!<small>${P.sub}</small></button>`);document.getElementById('pgo').onclick=()=>portalGo(P.k);}}
