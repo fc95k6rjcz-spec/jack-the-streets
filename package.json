@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "ws": "^8.22.1"
+  },
+  "name": "jack-the-streets",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.mjs",
+    "build": "python3 scripts/build-city-expansion.py",
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "node scripts/serve-browser-tests.mjs",
+    "test:comic-fit": "node scripts/test-comic-fit.mjs"
+  }
+}
