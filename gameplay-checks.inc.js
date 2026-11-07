@@ -28,7 +28,7 @@ window.runGameplayChecks=()=>{
  check('Unseen suspect eventually escapes and active units leave',()=>{cops=[];h.searchNoiseUntil=0;for(let i=0;i<1000&&h.wanted>0;i++){step(.05);updatePursuit(h,.05);}ok(h.wanted===0&&h.pursuit===null&&!h.hidden);});
  check('A witness report is delayed and uses the crime location',()=>{const p=newPed(h.x+50,h.y);p.call=null;h.wanted=0;h.pursuit=null;const crime={x:h.x-400,y:h.y};startWitnessCall(p,h,crime);updateWitness(p,1);ok(h.wanted===0);updateWitness(p,3);ok(h.wanted>=2&&h.pursuit.last.x===crime.x);});
  check('Drivers resist before the vehicle can be taken',()=>{h.theft=null;h.foot=true;h.wanted=0;h.pursuit=null;peds=[];cops=[];const t={x:h.x,y:h.y,a:0,state:'drive',civ:true,def:CAT.sedan,r:30};traffic=[t];ok(!resistCarTheft(h,t));ok(h.theft&&peds.length===1&&peds[0].call);h.theft=null;});
- check('All nine mission objective chains advance and pay exactly once',()=>{
+ check('All nine mission objective chains advance and pay exactly once after garage restoration',()=>{save.camp.garageLevel=1;
    for(let index=0;index<9;index++){save.camp.m=index;save.camp.comicSeen[index]=1;MS=null;h.jail=null;h.cuff=null;h.finished=false;h.dmg=0;h.hot=false;h.inside=null;h.foot=false;h.inHome=false;h.def=CAT.pocket;h.tank=false;h.wanted=0;cops=[];helis=[];startMission(h,true);ok(MS,'mission did not start '+index);const walletBefore=save[h.player].cash;let guard=0,missionSpent=0;
      while(MS&&guard++<60){const S=MS.def.st[MS.i];h.inside=null;
        if(S.k==='goto'){h.x=S.p.x;h.y=S.p.y;if(index===8)h.tank=true;}

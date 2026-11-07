@@ -33,7 +33,7 @@ window.CITY_RETAIL = [
   ['computer', 'BYTE WORKS', 'tech', '💻', ['Keyboard', 'Gaming mouse', 'Monitor']],
   ['toys', 'TOY PLANET', 'home', '🧸', ['Model race car', 'Building bricks', 'Teddy bear']],
   ['furniture', 'LOFT LIVING', 'home', '🛋', ['Lounge chair', 'Desk lamp', 'Side table']],
-  ['hardware', 'NUTS & BOLTS', 'home', '🔨', ['Toolbox', 'Drill', 'Work gloves']],
+  ['hardware', 'BUNNINGS', 'home', '🔨', ['Roof repair supplies', 'Workshop lights', 'Workbench tools']],
   ['garden', 'GREEN CORNER', 'home', '🌿', ['Palm plant', 'Watering can', 'Seed kit']],
   ['art', 'COLOUR CLUB', 'books', '🎨', ['Paint set', 'Sketchbook', 'Brush collection']],
   ['gifts', 'LOCAL TREASURES', 'home', '🎁', ['Sydney postcard set', 'Coastal print', 'Souvenir mug']],
