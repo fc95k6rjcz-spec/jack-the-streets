@@ -73,7 +73,7 @@ function drawCityExpansionGround(v,time){
   const x=IX[i]+(IX[i]===CITY_WORKS.freewayX?235:135),y=IY[j]+135;if(!visible(x,y,100))continue;if(surface(x,y)===DEEP||surface(x,y)===SHAL)continue;
   ctx.fillStyle='#173f42';ctx.fillRect(x-70,y-11,140,22);ctx.strokeStyle='#92af9c';ctx.lineWidth=1;ctx.strokeRect(x-70,y-11,140,22);ctx.fillStyle='#f5efce';ctx.font='700 12px sans-serif';ctx.fillText(ROAD_NAMES.h[j%ROAD_NAMES.h.length],x,y,132);
   ctx.strokeStyle='#44565a';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x+86,y+10);ctx.lineTo(x+86,y-22);ctx.lineTo(x+72,y-22);ctx.stroke();ctx.fillStyle='#fce5a4';ctx.beginPath();ctx.ellipse(x+70,y-21,9,5,0,0,7);ctx.fill();
-  if(surface(x+25,y+35)===PAVE){ctx.fillStyle='#477454';ctx.beginPath();ctx.arc(x+25,y+35,19,0,7);ctx.fill();ctx.fillStyle='#608559';ctx.beginPath();ctx.arc(x+20,y+30,12,0,7);ctx.fill();}
+  if(surface(x+25,y+35)===PAVE&&!(typeof drawCoastalStreetTree==='function'&&drawCoastalStreetTree(x+25,y+35,19,x+y))){ctx.fillStyle='#477454';ctx.beginPath();ctx.arc(x+25,y+35,19,0,7);ctx.fill();ctx.fillStyle='#608559';ctx.beginPath();ctx.arc(x+20,y+30,12,0,7);ctx.fill();}
  }
  ctx.restore();
 }
