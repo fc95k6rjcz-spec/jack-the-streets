@@ -128,7 +128,7 @@ function contractTarget(){if(!CONTRACT)return null;const J=CONTRACT;if(J.phase==
 function openJobBoard(h){if(NET.playing){toast('Leave the two-player session before using SMS contracts.');return;}let tab='jobs',page=0;return cityModal('SMS · COASTAL DISPATCH',({card,note,option,close})=>{
  const root=document.createElement('div');root.className='dispatch-content';card.append(root);
  const draw=()=>{root.replaceChildren();const w=save[h.player],done=w.jobsDone||[],list=jobCatalogue();note.textContent=done.length+'/300 CONTRACTS COMPLETE · '+money(w.cash)+(CONTRACT?' · ACTIVE: '+CONTRACT.job.n:'');
- const premium=document.createElement('button');premium.type='button';premium.className='warehouse-option';premium.textContent='PREMIUM GARAGE · A$7.99 CARS';premium.onclick=()=>{close();openPremiumGarage(h);};root.append(premium);const tabs=document.createElement('div');tabs.className='dispatch-tabs';for(const [key,label]of [['jobs','AVAILABLE JOBS'],['messages','MESSAGES']]){const b=document.createElement('button');b.type='button';b.textContent=label;b.setAttribute('aria-pressed',String(tab===key));b.onclick=()=>{tab=key;page=0;draw();};tabs.append(b);}root.append(tabs);
+ const premium=document.createElement('button');premium.type='button';premium.className='warehouse-option';premium.textContent='PREMIUM GARAGE · EARN WITH GAME CASH';premium.onclick=()=>{close();openPremiumGarage(h);};root.append(premium);const tabs=document.createElement('div');tabs.className='dispatch-tabs';for(const [key,label]of [['jobs','AVAILABLE JOBS'],['messages','MESSAGES']]){const b=document.createElement('button');b.type='button';b.textContent=label;b.setAttribute('aria-pressed',String(tab===key));b.onclick=()=>{tab=key;page=0;draw();};tabs.append(b);}root.append(tabs);
  if(tab==='messages'){for(const m of [...(w.sms||[])].reverse()){const article=document.createElement('article'),head=document.createElement('strong'),text=document.createElement('p');head.textContent=m.from;text.textContent=m.body;article.append(head,text);root.append(article);}if(!w.sms?.length){const p=document.createElement('p');p.textContent='Your messages will appear here.';root.append(p);}return;}
  if(CONTRACT){const p=document.createElement('p');p.textContent='Current job: '+CONTRACT.job.n+' · '+Math.ceil(CONTRACT.remaining)+'s remaining';const b=document.createElement('button');b.type='button';b.textContent='CANCEL CURRENT JOB';b.onclick=()=>{endContract(h,false,'Cancelled by driver');draw();};root.append(p,b);return;}
  const tier=Math.min(10,1+Math.floor(done.length/30)),available=list.filter(j=>!done.includes(j.id));const caption=document.createElement('p');caption.textContent='300 route contracts · 7 job types · Tier '+tier+'/10. Finish 30 jobs to unlock the next tier. Career bonuses: 3 jobs $500 · 10 jobs $1,000 · 30 jobs $2,000. First car goal: Breeze $4,500.';root.append(caption);
@@ -261,18 +261,18 @@ function appleUpgradeProduct(id,key){return APPLE_STORE_PREFIX+'.upgrade.'+id+'.
 async function applyAppleOwnership(payload){
  const ids=(payload.ids||[]).filter(id=>typeof id==='string'&&id.startsWith(APPLE_STORE_PREFIX+'.')),previous=save.appleEntitlements||[];
  for(const p of ['p1','p2']){const w=save[p];if(!w)continue;w.appleCars=w.appleCars||[];const owned=APPLE_CARS.filter(id=>ids.includes(appleCarProduct(id)));
-  for(const id of w.appleCars)if(!owned.includes(id)){w.owned=w.owned.filter(x=>x!==id);if(w.sel===id)w.sel='pocket';}
+  for(const id of w.appleCars)if(!owned.includes(id)&&!(w.cashCars||[]).includes(id)){w.owned=w.owned.filter(x=>x!==id);if(w.sel===id)w.sel='pocket';}
   for(const id of owned)if(!w.owned.includes(id))w.owned.push(id);w.appleCars=owned;
   w.appleUpgradeBase=w.appleUpgradeBase||{};w.security=w.security||{};
-  for(const id of APPLE_CARS){const relevant=ids.some(x=>x.startsWith(APPLE_STORE_PREFIX+'.upgrade.'+id+'.'))&&owned.includes(id),old=w.appleUpgradeBase[id];if(!relevant&&!old)continue;const up=upOf(w,id);if(!old)w.appleUpgradeBase[id]={eng:up.eng||0,tyr:up.tyr||0,arm:up.arm||0,security:w.security[id]||0};const base=w.appleUpgradeBase[id];
-   up.eng=ids.includes(appleUpgradeProduct(id,'engine'))&&owned.includes(id)?Math.max(base.eng,3):base.eng;
-   const armour=ids.includes(appleUpgradeProduct(id,'tyresarmour'))&&owned.includes(id);up.tyr=armour?5:base.tyr;up.arm=armour?3:base.arm;
-   w.security[id]=ids.includes(appleUpgradeProduct(id,'security'))&&owned.includes(id)?3:base.security;
+  for(const id of APPLE_CARS){const relevant=ids.some(x=>x.startsWith(APPLE_STORE_PREFIX+'.upgrade.'+id+'.'))&&(owned.includes(id)||(w.cashCars||[]).includes(id)),old=w.appleUpgradeBase[id];if(!relevant&&!old)continue;const up=upOf(w,id);if(!old)w.appleUpgradeBase[id]={eng:up.eng||0,tyr:up.tyr||0,arm:up.arm||0,security:w.security[id]||0};const base=w.appleUpgradeBase[id];
+   up.eng=ids.includes(appleUpgradeProduct(id,'engine'))&&(owned.includes(id)||(w.cashCars||[]).includes(id))?Math.max(base.eng,3):base.eng;
+   const armour=ids.includes(appleUpgradeProduct(id,'tyresarmour'))&&(owned.includes(id)||(w.cashCars||[]).includes(id));up.tyr=armour?5:base.tyr;up.arm=armour?3:base.arm;
+   w.security[id]=ids.includes(appleUpgradeProduct(id,'security'))&&(owned.includes(id)||(w.cashCars||[]).includes(id))?3:base.security;
    if(!relevant)delete w.appleUpgradeBase[id];
   }
  }
  save.appleEntitlements=ids;persist();const stored=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');if(!stored||JSON.stringify(stored.appleEntitlements)!==JSON.stringify(ids))throw Error('Ownership could not be saved. Please free device storage and restore purchases.');
- for(const h of cars.filter(c=>c.human&&!c.foot)){if(APPLE_CARS.includes(h.def.id)&&previous.includes(appleCarProduct(h.def.id))&&!ids.includes(appleCarProduct(h.def.id))){const d=CAT.pocket;applyVeh(h,{def:d,st:effStats(d,ZERO,'std'),r:28,m:d.s[3],look:{paint:null,wheel:'std'},color:d.col,up:{...ZERO},dmg:0,bl:bling(ZERO),home:true,fuel:100});}else if(ownedByApple(h)){h.up={...upOf(save[h.player],h.def.id)};h.st=effStats(h.def,h.up,h.look?.wheel||'std');h.bl=bling(h.up);}}
+ for(const h of cars.filter(c=>c.human&&!c.foot)){if(APPLE_CARS.includes(h.def.id)&&previous.includes(appleCarProduct(h.def.id))&&!ids.includes(appleCarProduct(h.def.id))&&!(save[h.player].cashCars||[]).includes(h.def.id)){const d=CAT.pocket;applyVeh(h,{def:d,st:effStats(d,ZERO,'std'),r:28,m:d.s[3],look:{paint:null,wheel:'std'},color:d.col,up:{...ZERO},dmg:0,bl:bling(ZERO),home:true,fuel:100});}else if(ownedByApple(h)){h.up={...upOf(save[h.player],h.def.id)};h.st=effStats(h.def,h.up,h.look?.wheel||'std');h.bl=bling(h.up);}}
  const cashAccepted=deliverAppleCash(payload),cashIDs=new Set((payload.cashPurchases||[]).map(t=>t.id)),acks=(payload.transactions||[]).filter(id=>!cashIDs.has(id)||cashAccepted.includes(id));if(acks.length)await appleStoreCall('acknowledge',{transactions:acks});refreshBank();
 }
 function ownedByApple(h,id=h.def.id){return (save.appleEntitlements||[]).includes(appleCarProduct(id));}
@@ -296,7 +296,7 @@ openPremiumShowroom=function(h,id='f458'){
 const warehouseBeforeApple=openWarehouse;
 openWarehouse=function(h){if(appleStoreAvailable()&&h.def?.premium){openPremiumShowroom(h,h.def.id);return;}warehouseBeforeApple(h);};
 setTimeout(syncAppleOwnership,0);
-function openPremiumGarage(h){return cityModal('PREMIUM GARAGE',({note,option,close})=>{note.textContent='A$7.99 target price per car · Lifetime ownership · Red and yellow finishes · Restore purchases in the iPhone and iPad app.';for(const id of APPLE_CARS){const d=CAT[id];option(d.n+' · '+(ownedByApple(h,id)?'OWNED':'A$7.99'),d.t,()=>{close();openPremiumShowroom(h,id);});}});}
+function openPremiumGarage(h){return cityModal('PREMIUM GARAGE',({note,option,close})=>{note.textContent='Earn every premium car with game cash. Optional Apple cash packs speed up saving. Lifetime ownership.';for(const id of APPLE_CARS){const d=CAT[id];option(d.n+' · '+(save[h.player].owned.includes(id)?'OWNED':money(d.price)+' GAME CASH'),d.t,()=>{close();openPremiumShowroom(h,id);});}});}
 const openPhoneBeforePremium=openPhone;
 openPhone=function(h){openPhoneBeforePremium(h);const b=document.createElement('button');b.type='button';b.textContent='PREMIUM GARAGE · APP STORE';b.onclick=()=>{closePhone(h);openPremiumGarage(h);};document.getElementById('phoneList').prepend(b);};
 const smashBeforeMotorway=spawnSmash;
