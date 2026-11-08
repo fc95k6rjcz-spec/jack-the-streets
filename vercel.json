@@ -1,7 +1,7 @@
 {
-  "buildCommand": null,
+  "buildCommand": "python3 scripts/build-web.py",
   "installCommand": null,
-  "outputDirectory": ".",
+  "outputDirectory": "dist",
   "framework": null,
   "cleanUrls": true
 }

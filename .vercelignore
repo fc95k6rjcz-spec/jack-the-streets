@@ -1,8 +1,9 @@
 src
 *.mjs
-*.inc.js
 *-preview.png
 comic-desktop.png
 comic-mobile.png
 assets/*.png
 !assets/jack-the-streets-home-*.png
+
+dist

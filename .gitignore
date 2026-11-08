@@ -33,3 +33,5 @@ ios/build/
 xcuserdata/
 
 !assets/garage-workshop-comic.png
+
+dist/
