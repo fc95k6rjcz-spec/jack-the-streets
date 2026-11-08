@@ -915,7 +915,7 @@ function genBig0(){const cols=120,rows=84,rc=[3,14,25,36,47,58,69,80,91,102,113]
 const SHOPINFO={fuel:{n:'GAS GO',ic:'⛽',c:'#2fbf6a',c2:'#ffffff'},burger:{n:'BURGER STOP',ic:'🍔',c:'#e5392b',c2:'#ffcc33'},repair:{n:'FIX-IT GARAGE',ic:'🔧',c:'#2f8cff',c2:'#ffffff'},
   guns:{n:'GUN SHOP',ic:'💣',c:'#3a3d42',c2:'#ff8a1f'},paint:{n:'SPRAY & GO',ic:'🎨',c:'#a45cf0',c2:'#ffffff'},bank:{n:'BIG BANK',ic:'🏦',c:'#c9a227',c2:'#141414'},mart:{n:'HARBOUR TECH',ic:'▣',c:'#9aafbc',c2:'#ffffff'},ware:{n:'YOUR WAREHOUSE',ic:'🏚️',c:'#5a6470',c2:'#ffcc33'}};
 let SHOPS=[];
-function drawShopPads(vis,time){for(const sh of SHOPS){if(!vis(sh.x,sh.y,250))continue;const x=sh.x-sh.w/2,y=sh.y-sh.h/2;ctx.fillStyle=PAT.pave||'#aaa493';ctx.fillRect(x,y,sh.w,sh.h);ctx.strokeStyle='rgba(237,228,205,.45)';ctx.lineWidth=2;ctx.beginPath();for(let i=0;i<=4;i++){const xx=x+8+i*(sh.w-16)/4;ctx.moveTo(xx,y+8);ctx.lineTo(xx,y+sh.h-8);}ctx.stroke();}}
+function drawShopPads(vis,time){for(const sh of SHOPS){if(!vis(sh.x,sh.y,250))continue;const x=sh.x-sh.w/2,y=sh.y-sh.h/2;ctx.fillStyle=sh.type==='ware'?'#8c8375':(PAT.pave||'#aaa493');ctx.fillRect(x,y,sh.w,sh.h);ctx.strokeStyle='rgba(237,228,205,.45)';ctx.lineWidth=2;ctx.beginPath();for(let i=0;i<=4;i++){const xx=x+8+i*(sh.w-16)/4;ctx.moveTo(xx,y+8);ctx.lineTo(xx,y+sh.h-8);}ctx.stroke();}}
 function drawShopSigns(vis,time){for(const sh of SHOPS){if(!vis(sh.x,sh.y,250))continue;const I=SHOPINFO[sh.type],sx=sh.x,sy=sh.y+sh.h/2+58;
   ctx.font='700 16px "Chakra Petch",sans-serif';const tw=ctx.measureText(I.n).width+48;ctx.fillStyle='#243034';ctx.strokeStyle='#bfaa79';ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(sx-tw/2,sy-18,tw,36,4);ctx.fill();ctx.stroke();
   ctx.font='18px sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(I.ic,sx-tw/2+8,sy+1);ctx.font='700 16px "Chakra Petch",sans-serif';ctx.fillStyle='#f1e4bf';ctx.fillText(I.n,sx-tw/2+34,sy+2);}}
@@ -1054,7 +1054,7 @@ function updateShops(h,dt){h.shopCD=h.shopCD||{};for(const k in h.shopCD)h.shopC
     else if(spend(h,full)){const cost=full;h.dmg=0;h.flat=0;h.tyres=0;popText(h.x,h.y-50,'🔧 FIXED! · '+priceLabel(cost),'#59d4ff');sfx(500,.08,'square');setTimeout(()=>sfx(800,.08,'square'),90);setTimeout(()=>sfx(1200,.15,'triangle'),180);}}
   else if(sh.type==='paint'){if(h.foot)return;if(spend(h,100)){h.color=PAINTS[1+Math.floor(rnd()*(PAINTS.length-1))];h.look={...h.look,paint:h.color};h.blNF=null;const lost=h.wanted>0;h.wanted=0;h.hidden=lost||h.hidden;h.sus=0;if(h.hidden&&!h.lastKnown)h.lastKnown={x:h.x,y:h.y,vx:0,vy:0};if(lost)h.lastKnown={x:h.x,y:h.y,vx:0,vy:0};
       popText(h.x,h.y-50,lost?'🎨 NEW PAINT! COPS LOST YOU':'🎨 NEW PAINT!','#c77dff');sfx(300,.4,'sawtooth',600,.04);}}
-  else if(sh.type==='ware'){if(h.warehouseLock!==sh.id){h.warehouseLock=sh.id;enterShop(h,sh);h.inside.px=.5;h.inside.py=.82;}}
+  else if(sh.type==='ware'){if(h.warehouseLock!==sh.id){h.warehouseLock=sh.id;enterShop(h,sh);h.inside.px=.44;h.inside.py=.65;}}
   else if(sh.type==='guns')gunShop(h);
   else if(typeof robShop==='function')robShop(h,sh);}
 function mkFarm(){const mk=(soil,crop,vert)=>{const c=document.createElement('canvas');c.width=c.height=96;const g=c.getContext('2d');g.fillStyle=soil;g.fillRect(0,0,96,96);
@@ -3643,7 +3643,7 @@ async function bootComicGame(){
  syncLoaderViewport();addEventListener('resize',syncLoaderViewport);window.visualViewport?.addEventListener('resize',syncLoaderViewport);
  const loader=document.getElementById('comicLoader'),bar=document.getElementById('gameLoadProgress'),label=document.getElementById('loadingLabel'),button=document.getElementById('enterLoadedGame');
  const cover=new Image();cover.src='assets/jack-comic-cover.webp';const atlas=new Image();atlas.src='assets/jack-comic-atlas.webp';
- const images=[...new Set([...Object.values(TOPIMG),...Object.values(PICIMG),...COPIMG,...BLDIMG,...Object.values(WIMG),POSTER,GROUNDIMG,SAFEHOUSE_IMG,GARAGE_BEFORE_IMG,JAIL_ROOM_IMG,JACKSPRITE,SURRENDER_IMG,CHARACTER_SPRITES,CHARACTER_OVERHEAD,INTERIOR_FURNITURE,COASTAL_ROOFS,SUBURBAN_ROOFS,URBAN_ROOFS,OPENING_ART,...Object.values(WORLD_ART),cover,atlas])].filter(im=>im instanceof HTMLImageElement);
+ const images=[...new Set([...Object.values(TOPIMG),...Object.values(PICIMG),...COPIMG,...BLDIMG,...Object.values(WIMG),POSTER,GROUNDIMG,SAFEHOUSE_IMG,GARAGE_BEFORE_IMG,CUTAWAY_WORKSHOP,CUTAWAY_UPGRADED,CUTAWAY_BANK,JAIL_ROOM_IMG,JACKSPRITE,SURRENDER_IMG,CHARACTER_SPRITES,CHARACTER_OVERHEAD,INTERIOR_FURNITURE,COASTAL_ROOFS,SUBURBAN_ROOFS,URBAN_ROOFS,OPENING_ART,...Object.values(WORLD_ART),cover,atlas])].filter(im=>im instanceof HTMLImageElement);
 
  let settled=0,failed=0;const tasks=images.map(im=>new Promise(resolve=>{const complete=()=>{settled++;if(!im.naturalWidth)failed++;bar.value=Math.round(settled/(images.length+1)*100);label.textContent='Preparing the city · '+bar.value+'%';resolve();};if(im.complete)complete();else{im.addEventListener('load',complete,{once:true});im.addEventListener('error',complete,{once:true});}}));
  tasks.push(document.fonts.ready.then(()=>{settled++;bar.value=Math.round(settled/(images.length+1)*100);}));
@@ -3823,7 +3823,7 @@ function openRayCall(h){cityModal('A CALL HOME · UNCLE RAY',({note,option,close
 function garageHome(){const all=SHOPS.filter(s=>s.type==='ware');return all.find(s=>s.id===camp().garageHomeId)||all[0]||null;}
 function isBrokenGarage(sh){return !!sh&&sh.type==='ware'&&!camp().garageLevel&&sh.id===garageHome()?.id;}
 function prepareGarageStart(){const c=camp(),w=save.p1;const fresh=(c.m||0)===0&&!c.garageLevel&&!(w.jobsDone||[]).length;if(!w.owned.includes('pocket'))w.owned.push('pocket');if(fresh&&!c.starterCarChosen)w.sel='pocket';if(!c.starterBombVersion){c.starterBombVersion=1;w.dmg=w.dmg||{};if(fresh)w.dmg.pocket=Math.max(w.dmg.pocket||0,28);}c.garageVersion=1;c.garageRepairs=c.garageRepairs||[];persist();}
-function arriveAtGarage(){const sh=garageHome(),h=cars.find(c=>c.player==='p1');if(!sh||!h)return;camp().garageHomeId=sh.id;const d=shopDoor(sh);const p=roadSpot(d.x,d.y,0,220)||{x:d.x+Math.cos(d.angle)*70,y:d.y+Math.sin(d.angle)*70};h.x=p.x;h.y=p.y;h.vx=h.vy=0;h.homeVeh=vehOf(h);h.foot=true;h.def=FOOTDEF;h.r=13;h.m=.5;h.dmg=h.body||0;enterShop(h,sh);h.inside.px=.5;h.inside.py=.75;persist();}
+function arriveAtGarage(){const sh=garageHome(),h=cars.find(c=>c.player==='p1');if(!sh||!h)return;camp().garageHomeId=sh.id;const d=shopDoor(sh);const p=roadSpot(d.x,d.y,0,220)||{x:d.x+Math.cos(d.angle)*70,y:d.y+Math.sin(d.angle)*70};h.x=p.x;h.y=p.y;h.vx=h.vy=0;h.homeVeh=vehOf(h);h.foot=true;h.def=FOOTDEF;h.r=13;h.m=.5;h.dmg=h.body||0;enterShop(h,sh);h.inside.px=.44;h.inside.py=.65;persist();}
 function garageMission(){const home=garageHome();return{n:'A Place to Start',who:'Uncle Ray',say:'The old car still runs. This garage needs some love. Collect a repair pack from BuildMate, bring it home, and we’ll fix it together.',at:home||RD(4,2),auto:true,garagePrelude:true,pay:500,st:[{k:'garageSupplies',txt:'Drive to BUILDMATE · go inside and collect the FREE GARAGE REPAIR PACK'},{k:'garageRestore',txt:'Return to YOUR GARAGE · go inside and repair the roof, lights and workbench'}]};}
 function driveGarageCar(h){if(!h.inside||h.inside.sh.type!=='ware')return;const w=save[h.player],d=CAT[w.owned.includes(w.sel)?w.sel:'pocket']||CAT.pocket,up=upOf(w,d.id),look=lookOf(w,d.id);applyVeh(h,{def:d,st:effStats(d,up,look.wheel),r:clamp(d.L*K*.4,20,40),m:d.s[3],up:{...up},look:{...look},color:look.paint||d.col,dmg:dmgOf(w,d.id),bl:bling(up),home:true,fuel:100});h.foot=false;w.sel=d.id;leaveShop(h);const p=roadSpot(h.x,h.y,0,260);if(p){h.x=p.x;h.y=p.y;}h.homeVeh=vehOf(h);h.homeDef=d;h.homeDmg0=h.dmg;h.inHome=true;h.gps={type:camp().garageSupplies?'ware':'hardware',ic:camp().garageSupplies?'🏚️':'🔨',n:camp().garageSupplies?'YOUR GARAGE':'BUILDMATE',route:null,t:0};persist();}
 function finishGarageMission(){const c=camp();if(!c.garageLevel)return;if(!c.garageRewarded){save.p1.cash+=500;c.garageRewarded=true;}MS=null;MSWAIT=simT+12;setJackFeeling('hopeful');persist();refreshBank();for(const h of cars)if(h.human){h.msg='GARAGE RESTORED · +$500 · WORKSHOP UNLOCKED';h.msgT=8;}storyMsg('Uncle Ray','Look at that, Jack. A dry roof, working lights, and a bench we built together. Your parents would have loved seeing you make this place your own.',10);}
@@ -4507,7 +4507,7 @@ signatureStyle.textContent+='@media(max-height:500px) and (min-width:650px){.pro
 // HOME IMPROVEMENTS BEGIN
 /* Home improvements use game cash, independently of specialty workshop equipment. */
 const HOME_IMPROVEMENTS={
- living:{name:'LIVING QUARTERS',cost:750,detail:'New bedding, a woven rug and warm lighting. Free food and recovery at home.'},
+ living:{name:'LIVING QUARTERS',cost:750,detail:'A comfortable sofa, a woven rug and warm lighting. Free food and recovery at home.'},
  floor:{name:'PRO WORKSHOP',cost:1800,detail:'Sealed graphite floor, illuminated work zone and floor markings. Free fuel cans at home.'},
  storage:{name:'SECURE STORAGE',cost:3200,detail:'Lockable cabinets and monitored storage. Fit level-one security to every car you own.'}
 };
@@ -4577,6 +4577,90 @@ const syncRetailBeforeBoutique=syncRetailUI;syncRetailUI=function(){syncRetailBe
 const retailStyle=document.createElement('style');retailStyle.textContent=`#retailActions{top:auto!important;bottom:calc(10px + env(safe-area-inset-bottom))!important;left:calc(10px + env(safe-area-inset-left))!important;right:calc(150px + env(safe-area-inset-right));transform:none!important;justify-content:center;gap:6px!important;flex-wrap:wrap}#retailActions button{font:800 12px system-ui!important;min-height:40px!important;padding:8px 12px!important;border-width:1px!important;border-radius:8px!important;box-shadow:0 4px 12px #0004!important}#retailActions button:nth-last-child(2){background:#2e4048!important;border-color:#94786c!important;color:#eee4d6!important}@media(max-width:950px){#retailActions{right:calc(66px + env(safe-area-inset-right));flex-wrap:nowrap}#retailActions button{flex:1;min-width:0;font-size:10px!important;padding:7px 6px!important}body.inRetailStore #regionalMapButton{right:calc(8px + env(safe-area-inset-right))!important;bottom:calc(10px + env(safe-area-inset-bottom))!important;width:48px!important;min-height:40px!important;padding:6px!important;font-size:0!important}body.inRetailStore #regionalMapButton:after{content:'MAP';font:800 10px system-ui}}`;document.head.append(retailStyle);
 
 // BOUTIQUE INTERIORS END
+// RENDERED CUTAWAY SCENES BEGIN
+/* Empty rendered stages; actors, cars, collisions and actions remain live. */
+const CUTAWAY_WORKSHOP=new Image();CUTAWAY_WORKSHOP.src='assets/workshop-cutaway-v1.webp';
+const CUTAWAY_UPGRADED=new Image();CUTAWAY_UPGRADED.src='assets/workshop-cutaway-upgraded-v1.webp';
+const CUTAWAY_BANK=new Image();CUTAWAY_BANK.src='assets/bank-cutaway-v1.webp';
+const CUTAWAY_BLOCKS={
+ garage:[[.205,.415,.39,.56],[.205,.55,.25,.65],[.215,.65,.28,.795],[.65,.435,.765,.60],[.765,.445,.835,.67],[.66,.705,.835,.80],[.485,.52,.555,.735]],
+ bank:[[.205,.44,.40,.585],[.515,.425,.72,.52],[.515,.35,.715,.42],[.225,.665,.31,.79],[.39,.64,.48,.77],[.57,.675,.705,.79],[.19,.605,.35,.625],[.365,.605,.48,.625]]
+};
+function cutawayBlocked(kind,x,y){
+ const inRoom=kind==='garage'?x>=.205&&x<=.835&&y>=.405&&y<=.795:x>=.205&&x<=.74&&y>=.34&&y<=.80;
+ const inExit=kind==='garage'?x>=.44&&x<=.59&&y>=.17&&y<=.46:x>=.445&&x<=.51&&y>=.28&&y<=.40;
+ if(!inRoom&&!inExit)return true;
+ return CUTAWAY_BLOCKS[kind].some(([a,b,c,d])=>x>a-.008&&x<c+.008&&y>b-.008&&y<d+.008);
+}
+function cutawayPath(kind,start,end){
+ const step=.0125,N=81,key=(x,y)=>y*N+x,cell=p=>[Math.round(p.x/step),Math.round(p.y/step)];
+ const [sx,sy]=cell(start),[ex,ey]=cell(end),queue=[[sx,sy]],seen=new Map([[key(sx,sy),null]]);let found=null;
+ for(let i=0;i<queue.length&&i<6500;i++){const [x,y]=queue[i];if(Math.hypot(x-ex,y-ey)<1.6){found=[x,y];break;}
+  for(const [dx,dy]of [[1,0],[-1,0],[0,1],[0,-1]]){const a=x+dx,b=y+dy,k=key(a,b);if(a<0||a>=N||b<0||b>=N||seen.has(k)||cutawayBlocked(kind,a*step,b*step))continue;seen.set(k,[x,y]);queue.push([a,b]);}}
+ if(!found)return [];
+ const path=[];for(let p=found;p;p=seen.get(key(...p)))path.push({x:p[0]*step,y:p[1]*step});return path.reverse().slice(1);
+}
+function cutawayMove(I,kind,dx,dy){
+ if(!cutawayBlocked(kind,I.px+dx,I.py))I.px+=dx;
+ if(!cutawayBlocked(kind,I.px,I.py+dy))I.py+=dy;
+}
+function cutawayWalk(h,dt,kind){
+ const I=h.inside,k=h.keyset;let mx=Number(held(k,'right'))-Number(held(k,'left')),my=Number(held(k,'down'))-Number(held(k,'up'));const stick=stickFor(h);if(stick){mx=stick.x;my=stick.y;}
+ if(Math.hypot(mx,my)>.1){I.walkTo=null;I.path=null;}
+ if(I.walkTo){if(I.pathTarget!==I.walkTo){I.pathTarget=I.walkTo;I.path=cutawayPath(kind,{x:I.px,y:I.py},I.walkTo);}
+  while(I.path?.length&&Math.hypot(I.path[0].x-I.px,I.path[0].y-I.py)<.009)I.path.shift();
+  const p=I.path?.[0];if(p){mx=(p.x-I.px)*1.75;my=p.y-I.py;}else{const target=I.walkTo;I.walkTo=null;if(target.id&&Math.hypot(I.px-target.x,I.py-target.y)<.04)safehouseAction(h,target.id);}}
+ I.walking=Math.hypot(mx,my)>.001;if(I.walking){I.a=Math.atan2(my,mx);I.phase=(I.phase||0)+dt*8;const len=Math.hypot(mx,my)||1;cutawayMove(I,kind,mx/len*dt*.13,my/len*dt*.23);}
+ I.walkFrame=I.walking?[1,2,3,2][Math.floor(I.phase||0)%4]:0;
+}
+const CUTAWAY_STATIONS={rest:[.635,.60],work:[.36,.60],supply:[.64,.69],snack:[.755,.68],garage:[.565,.76],room:[.69,.625],drive:[.455,.65]};
+for(const s of SAFEHOUSE_STATIONS){const p=CUTAWAY_STATIONS[s.id];if(p){s.x=p[0];s.y=p[1];}}
+SAFEHOUSE_STATIONS.push({id:'drive',x:.455,y:.65,n:'DRIVE OUT',hint:'Take your car into the city'});
+const actionBeforeCutaway=safehouseAction;safehouseAction=function(h,id){if(id==='drive')return driveGarageCar(h);return actionBeforeCutaway(h,id);};
+function cutawayInit(h,kind){const I=h.inside;if(I.cutaway===kind)return;I.cutaway=kind;I.px=kind==='garage'?.44:.475;I.py=kind==='garage'?.65:.39;I.a=-Math.PI/2;I.walkTo=null;I.path=null;}
+const enterBeforeCutaway=enterShop;enterShop=function(h,sh){enterBeforeCutaway(h,sh);if(sh.type==='ware'||sh.type==='bank')cutawayInit(h,sh.type==='ware'?'garage':'bank');};
+const driveBeforeCutaway=driveGarageCar;driveGarageCar=function(h){if(!h.inside||h.inside.sh.type!=='ware')return;if(h.inside.driveOut!=null)return;h.inside.driveOut=0;h.inside.walkTo=null;keys.clear();};
+updateSafehouse=function(h,dt){const I=h.inside;cutawayInit(h,'garage');I.t+=dt;
+ if(I.driveOut!=null){I.driveOut+=dt/1.8;if(I.driveOut>=1)driveBeforeCutaway(h);return;}
+ cutawayWalk(h,dt,'garage');if(!h.inside)return;
+ I.station=SAFEHOUSE_STATIONS.reduce((best,s)=>{const d=Math.hypot((I.px-s.x)*1.75,I.py-s.y);return d<.10&&(!best||d<best.d)?{s,d}:best;},null)?.s;
+ if(tapped(h.keyset,'exit')){leaveShop(h);return;}if(tapped(h.keyset,'fire')){const enemy=cops.some(c=>(c.offs||[]).some(o=>o.room===I.sh.id&&o.down<=0));if(enemy)fightOfficer(h);else if(I.station)safehouseAction(h,I.station.id);}
+ h.shopMsgT=Math.max(0,(h.shopMsgT||0)-dt);
+};
+function cutawayFrame(vp,I){const header=42,footer=66,ratio=1.75,w=vp.w,H=vp.h;const phone=H<550&&w/H>1.8,rw=phone?w:Math.min(w,(H-header-footer)*ratio),rh=rw/ratio,ox=vp.x+(w-rw)/2,oy=phone?header-rh*.29:header+(H-header-footer-rh)/2;I.screen={ox,oy,rw,rh};return I.screen;}
+function drawCutawayActor(h,screen,time){const I=h.inside,{ox,oy,rw,rh}=screen;ctx.save();ctx.translate(ox+I.px*rw,oy+I.py*rh);const size=rw/1450;ctx.scale(size,size);drawPed({isJack:true,appearance:save[h.player]?.appearance||'redline',moving:!!I.walking,walkFrame:I.walkFrame??0,x:0,y:0,a:I.a??-Math.PI/2,ph:time/180,down:0,run:0},time);ctx.restore();}
+function cutawayLabel(text,x,y,selected=false){ctx.save();ctx.font='700 10px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';const w=ctx.measureText(text).width+20;ctx.fillStyle=selected?'#e8c27a':'#162b32df';ctx.beginPath();ctx.roundRect(x-w/2,y-12,w,24,6);ctx.fill();ctx.fillStyle=selected?'#162b32':'#f3e6c6';ctx.fillText(text,x,y);ctx.restore();}
+function cutawayHeader(vp,title,detail){ctx.save();ctx.fillStyle='#10212bef';ctx.fillRect(vp.x,0,vp.w,42);ctx.fillStyle='#edd09a';ctx.textAlign='left';ctx.font='800 13px system-ui';ctx.fillText(title,vp.x+14,17);ctx.fillStyle='#c7d0c8';ctx.font='11px system-ui';ctx.fillText(detail,vp.x+14,33);ctx.restore();}
+function cutawayWorkshopArt(h,screen){const {ox,oy,rw,rh}=screen;ctx.drawImage(CUTAWAY_WORKSHOP,ox,oy,rw,rh);const owned=homeImprovements(save[h.player]);if(!CUTAWAY_UPGRADED.complete||!CUTAWAY_UPGRADED.naturalWidth)return;const patch=(x,y,w,height)=>{ctx.save();ctx.beginPath();ctx.rect(ox+x*rw,oy+y*rh,w*rw,height*rh);ctx.clip();ctx.drawImage(CUTAWAY_UPGRADED,ox,oy,rw,rh);ctx.restore();};if(owned.floor){patch(.20,.40,.64,.40);if(!owned.living){ctx.save();ctx.beginPath();ctx.rect(ox+.64*rw,oy+.41*rh,.20*rw,.28*rh);ctx.clip();ctx.drawImage(CUTAWAY_WORKSHOP,ox,oy,rw,rh);ctx.restore();}}if(owned.living)patch(.64,.41,.20,.28);if(owned.storage)patch(.65,.69,.19,.11);else if(owned.floor){ctx.save();ctx.beginPath();ctx.rect(ox+.65*rw,oy+.69*rh,.19*rw,.11*rh);ctx.clip();ctx.drawImage(CUTAWAY_WORKSHOP,ox,oy,rw,rh);ctx.restore();}}
+const safehouseDrawBeforeCutaway=drawSafehouse;drawSafehouse=function(vp,h,time,u){if(!CUTAWAY_WORKSHOP.complete||!CUTAWAY_WORKSHOP.naturalWidth)return safehouseDrawBeforeCutaway(vp,h,time,u);const I=h.inside;cutawayInit(h,'garage');const S=cutawayFrame(vp,I),{ox,oy,rw,rh}=S;ctx.save();ctx.fillStyle='#101b20';ctx.fillRect(vp.x,0,vp.w,vp.h);ctx.save();ctx.beginPath();ctx.rect(vp.x,42,vp.w,vp.h-108);ctx.clip();cutawayWorkshopArt(h,S);
+ const d=CAT[save[h.player].sel]||CAT.pocket,look=lookOf(save[h.player],d.id),art=realisticCar(d,look)||comicCar(d,look);if(art){const p=clamp(I.driveOut||0,0,1),y=.63-p*p*.42,len=rh*(d.commercial?.29:.225),height=len*art.naturalHeight/art.naturalWidth;ctx.save();ctx.translate(ox+.52*rw,oy+y*rh);ctx.rotate(-Math.PI/2);ctx.drawImage(art,-len/2,-height/2,len,height);ctx.restore();}
+ if(I.driveOut==null)drawCutawayActor(h,S,time);
+ // One active label; the bottom dock carries the other actions.
+ if(I.station&&I.driveOut==null)cutawayLabel(I.station.id==='work'&&isBrokenGarage(I.sh)?'REPAIR GARAGE':I.station.n,ox+I.station.x*rw,oy+I.station.y*rh-25,true);
+ ctx.restore();cutawayHeader(vp,playerStoryName().toUpperCase()+'’S WORKSHOP',money(save[h.player].cash)+' · '+(isBrokenGarage(I.sh)?'YOUR FIRST PROJECT':'HOME & SAFEHOUSE'));
+ if(h.shopMsgT>0)cutawayLabel(h.shopMsg,vp.x+vp.w/2,vp.h-79);
+ if(I.driveOut!=null)cutawayLabel('HEADING OUT · '+d.n.toUpperCase(),vp.x+vp.w/2,vp.h-80);ctx.restore();};
+// Keep the workshop controls off the artwork, on tablets as well as phones.
+const cutawayStyle=document.createElement('style');cutawayStyle.textContent=`body.inHomeGarage #garageActions{bottom:calc(8px + env(safe-area-inset-bottom))!important;gap:6px!important}body.inHomeGarage #pauseBtn,body.inCutawayBank #pauseBtn{top:4px!important;width:34px!important;height:34px!important;min-height:34px!important;font-size:15px!important}body.inHomeGarage #regionalMapButton{bottom:calc(8px + env(safe-area-inset-bottom))!important}body.inHomeGarage #touch .fire{bottom:70px!important}#bankActions{position:fixed;z-index:12;bottom:calc(8px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;gap:8px;padding:5px;border-radius:10px;background:#132831ed}#bankActions button{min-height:40px;padding:8px 14px;border:1px solid #b3a079;border-radius:7px;background:#e6c382;color:#142b33;font:800 11px system-ui}#bankActions button[data-rob]{background:#3b3332;color:#ead2b9;border-color:#ad8071}#bankActions[hidden]{display:none}body.inCutawayBank #regionalMapButton{bottom:8px!important;font-size:10px!important;padding:10px!important}body.inCutawayBank #touch .nos,body.inCutawayBank #touch .exit{display:none}@media(max-width:650px){#bankActions{left:8px;right:68px;transform:none;justify-content:center}#bankActions button{flex:1;padding:8px 5px;font-size:10px}body.inCutawayBank #regionalMapButton{width:50px;font-size:0!important}body.inCutawayBank #regionalMapButton:after{content:'MAP';font:800 10px system-ui}}`;document.head.append(cutawayStyle);
+function bankVaultNear(I){return Math.hypot((I.px-.55)*1.75,I.py-.68)<.12;}
+function advanceCutawayBank(h,dt){const I=h.inside,sh=I.sh,empty=(sh.robbedAt??-999)>simT-120||bankHeatState(save[h.player]).cooldown>0;
+ if(I.done||empty)return;
+ if(bankVaultNear(I)&&(held(h.keyset,'fire')||I.robIntent)){I.robT+=dt;if(I.robT>=3){I.done=true;I.robIntent=false;setJackFeeling('uneasy');sh.robbedAt=simT;const amt=bankHeistReward(h);save[h.player].cash+=amt;recordBankLoot(h,amt);persist();refreshBank();I.amt=amt;h.wanted=Math.max(h.wanted,4);addWanted(h,.5);h.hidden=false;h.lastKnown=null;h.robCall={x:h.x,y:h.y,until:simT+60,n:0};h.msg='ALARM · POLICE RESPONDING';h.msgT=3.5;sfx(1000,.1,'square');}}
+ else I.robT=Math.max(0,I.robT-dt*2);
+}
+const insideBeforeCutaway=updateInside;updateInside=function(h,dt){if(h.inside.sh.type!=='bank')return insideBeforeCutaway(h,dt);cutawayInit(h,'bank');const I=h.inside;I.t+=dt;cutawayWalk(h,dt,'bank');if(!h.inside)return;if(tapped(h.keyset,'exit')){leaveShop(h);return;}const intruders=cops.flatMap(c=>c.offs||[]).filter(o=>o.room===I.sh.id&&o.down<=0);if(intruders.length&&held(h.keyset,'fire')){if(h.gun?.ammo>0){if((h.gunCD||0)<=simT){h.gunCD=simT+.25;h.gun.ammo--;intruders[0].down=3;h.offBust=0;h.searchNoiseUntil=simT+2;sfx(500,.08,'triangle',-300,.05);}}else if(tapped(h.keyset,'fire'))fightOfficer(h);return;}advanceCutawayBank(h,dt);};
+const interiorBeforeCutaway=drawInterior;drawInterior=function(vp,h,time,u){if(h.inside.sh.type!=='bank'||!CUTAWAY_BANK.complete||!CUTAWAY_BANK.naturalWidth)return interiorBeforeCutaway(vp,h,time,u);cutawayInit(h,'bank');const I=h.inside,S=cutawayFrame(vp,I),{ox,oy,rw,rh}=S;ctx.save();ctx.fillStyle='#101b20';ctx.fillRect(vp.x,0,vp.w,vp.h);ctx.save();ctx.beginPath();ctx.rect(vp.x,42,vp.w,vp.h-108);ctx.clip();ctx.drawImage(CUTAWAY_BANK,ox,oy,rw,rh);drawCutawayActor(h,S,time);
+ for(const x of [.55,.61,.67]){ctx.save();ctx.translate(ox+x*rw,oy+.425*rh);ctx.scale(rw/1700,rw/1700);drawPed({x:0,y:0,a:Math.PI/2,ph:0,skin:SKIN[1],hair:HAIR[1],shirt:'#354c59',down:0,run:0},time);ctx.restore();}
+ for(const c of cops)for(const o of c.offs||[])if(o.room===I.sh.id){ctx.save();ctx.translate(ox+clamp(o.rx,.42,.55)*rw,oy+clamp(o.ry,.36,.59)*rh);ctx.scale(rw/1450,rw/1450);drawPed({...o.pd,x:0,y:0,a:0,ph:time/180,shirt:'#233d65',down:o.down,run:1},time);ctx.restore();}
+ const empty=(I.sh.robbedAt??-999)>simT-120||bankHeatState(save[h.player]).cooldown>0;
+ if(!I.done&&!empty)cutawayLabel('VAULT',ox+.55*rw,oy+.68*rh,true);ctx.restore();cutawayHeader(vp,'HARBOUR BANK',I.done?'ALARM RAISED · '+money(I.amt)+' STOLEN · FIND THE EXIT':empty?'VAULT EMPTY · RETURN LATER':I.robT>0?'OPENING THE VAULT · '+Math.round(I.robT/3*100)+'%':bankVaultNear(I)?'VAULT · HOLD FIRE OR TAP ROB VAULT':'WALK TO THE VAULT · OR EXPLORE THE LOBBY');
+ ctx.restore();syncBankActions(h);};
+function syncBankActions(h){let b=document.getElementById('bankActions');if(!b){b=document.createElement('div');b.id='bankActions';document.body.append(b);}const visible=!!h?.inside&&h.inside.sh.type==='bank'&&state==='race'&&!paused&&!COMIC&&!h.jail;document.body.classList.toggle('inCutawayBank',visible);b.hidden=!visible;if(!visible)return;const I=h.inside;if(b._room!==I){b._room=I;b.replaceChildren();const add=(label,action,rob=false)=>{const x=document.createElement('button');x.type='button';x.textContent=label;if(rob)x.dataset.rob='true';x.onclick=action;b.append(x);return x;};add('WALK TO VAULT',()=>{I.walkTo={x:.55,y:.66};});add('ROB VAULT',()=>{I.robIntent=!I.robIntent;},true);add('LEAVE BANK',()=>leaveShop(h));}const rob=b.querySelector('[data-rob]');rob.textContent=I.done?'ALARM RAISED':I.robIntent?'CANCEL ROBBERY':'ROB VAULT';rob.disabled=I.done||!bankVaultNear(I)||(I.sh.robbedAt??-999)>simT-120||bankHeatState(save[h.player]).cooldown>0;}
+const syncBeforeBank=syncGarageUI;syncGarageUI=function(){syncBeforeBank();syncBankActions(cars.find(c=>c.human&&c.inside?.sh.type==='bank'));};
+const worldBeforeCutaway=drawComicShop;drawComicShop=function(sh,cam){const im=sh.type==='bank'?CUTAWAY_BANK:sh.type==='ware'?CUTAWAY_WORKSHOP:null;if(!im?.complete||!im.naturalWidth)return worldBeforeCutaway(sh,cam);const parcel=shopArtParcel(sh);if(!parcel)return worldBeforeCutaway(sh,cam);const r=parcel.rect;ctx.save();ctx.drawImage(im,im.naturalWidth*.19,im.naturalHeight*.37,im.naturalWidth*.65,im.naturalHeight*.55,r.x0,r.y0,r.x1-r.x0,r.y1-r.y0);ctx.restore();return true;};
+cv.addEventListener('pointerdown',e=>{if(paused||COMIC||state!=='race')return;const box=cv.getBoundingClientRect(),x=e.clientX-box.left,y=e.clientY-box.top;for(const h of cars){const I=h.inside;if(!h.human||!I?.cutaway||!I.screen||I.driveOut!=null)continue;const {ox,oy,rw,rh}=I.screen,p={x:(x-ox)/rw,y:(y-oy)/rh};if(cutawayBlocked(I.cutaway,p.x,p.y))continue;if(I.cutaway==='garage'&&SAFEHOUSE_STATIONS.some(s=>Math.hypot(p.x-s.x,p.y-s.y)<.06))continue;I.walkTo=p;}});
+
+// RENDERED CUTAWAY SCENES END
 bootComicGame();
 requestAnimationFrame(frame);
 })();

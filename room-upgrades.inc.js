@@ -1,6 +1,6 @@
 /* Home improvements use game cash, independently of specialty workshop equipment. */
 const HOME_IMPROVEMENTS={
- living:{name:'LIVING QUARTERS',cost:750,detail:'New bedding, a woven rug and warm lighting. Free food and recovery at home.'},
+ living:{name:'LIVING QUARTERS',cost:750,detail:'A comfortable sofa, a woven rug and warm lighting. Free food and recovery at home.'},
  floor:{name:'PRO WORKSHOP',cost:1800,detail:'Sealed graphite floor, illuminated work zone and floor markings. Free fuel cans at home.'},
  storage:{name:'SECURE STORAGE',cost:3200,detail:'Lockable cabinets and monitored storage. Fit level-one security to every car you own.'}
 };
