@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
+const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+function fixture(){const reports=[],h={human:true,wanted:0},c={simT:10,recordCrime:(h,text)=>reports.push(text),FREE:()=>true,addWanted:(h,n)=>h.wanted+=n,say(){},sfx(){}};vm.createContext(c);vm.runInContext(html.slice(html.indexOf('function seriousTrafficCrash('),html.indexOf('function addWanted(')),c);return{c,h,reports};}
+test('parking bumps and moderate vehicle collisions do not create police reports',()=>{const{c,h,reports}=fixture();for(const impact of [0,35,120,200,239])c.hitAndRun(h,'car',impact);assert.equal(reports.length,0);assert.equal(h.wanted,0);});
+test('serious impact reports once, with a cooldown for the same pileup',()=>{const{c,h,reports}=fixture();c.hitAndRun(h,'car',260);assert.equal(reports.length,1);c.hitAndRun(h,'car',400);assert.equal(reports.length,1);c.simT=19;c.hitAndRun(h,'car',300);assert.equal(reports.length,2);});
+test('pedestrian injuries still get reported independently of vehicle impact threshold',()=>{const{c,h,reports}=fixture();c.hitAndRun(h,'ped');assert.equal(reports[0],'PEDESTRIAN HIT');assert(h.wanted>=1);});
