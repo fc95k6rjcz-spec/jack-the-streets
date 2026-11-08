@@ -7,3 +7,5 @@ assets/*.png
 !assets/jack-the-streets-home-*.png
 
 dist
+
+!assets/garage-workshop-comic.png

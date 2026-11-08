@@ -1,7 +1,7 @@
 /* Forty fictional-game shopping destinations. Prices follow free-play mode. */
 window.CITY_RETAIL = [
-  ['burger', 'McDONALD’S', 'food', '🍔', ['Burger, fries & drink', 'Chocolate shake', 'Breakfast muffin']],
-  ['mart', 'APPLE STORE', 'tech', '▣', ['iPhone', 'AirPods', 'MacBook']],
+  ['burger', 'BURGER STOP', 'food', '🍔', ['Burger, fries & drink', 'Chocolate shake', 'Breakfast muffin']],
+  ['mart', 'HARBOUR TECH', 'tech', '▣', ['iPhone', 'AirPods', 'MacBook']],
   ['pizza', 'PIZZA PALACE', 'food', '🍕', ['Margherita pizza', 'Pepperoni slice', 'Garlic bread']],
   ['sushi', 'HARBOUR SUSHI', 'food', '🍣', ['Salmon roll', 'Bento box', 'Miso soup']],
   ['tacos', 'SUNSET TACOS', 'food', '🌮', ['Beef tacos', 'Veggie burrito', 'Nachos']],
@@ -33,7 +33,7 @@ window.CITY_RETAIL = [
   ['computer', 'BYTE WORKS', 'tech', '💻', ['Keyboard', 'Gaming mouse', 'Monitor']],
   ['toys', 'TOY PLANET', 'home', '🧸', ['Model race car', 'Building bricks', 'Teddy bear']],
   ['furniture', 'LOFT LIVING', 'home', '🛋', ['Lounge chair', 'Desk lamp', 'Side table']],
-  ['hardware', 'BUNNINGS', 'home', '🔨', ['Roof repair supplies', 'Workshop lights', 'Workbench tools']],
+  ['hardware', 'BUILDMATE', 'home', '🔨', ['Roof repair supplies', 'Workshop lights', 'Workbench tools']],
   ['garden', 'GREEN CORNER', 'home', '🌿', ['Palm plant', 'Watering can', 'Seed kit']],
   ['art', 'COLOUR CLUB', 'books', '🎨', ['Paint set', 'Sketchbook', 'Brush collection']],
   ['gifts', 'LOCAL TREASURES', 'home', '🎁', ['Sydney postcard set', 'Coastal print', 'Souvenir mug']],

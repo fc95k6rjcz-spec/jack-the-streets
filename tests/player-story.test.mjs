@@ -1,0 +1,4 @@
+import fs from 'node:fs';import vm from 'node:vm';import test from 'node:test';import assert from 'node:assert/strict';
+const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
+test('custom street names are literal text in narration, including replacement symbols',()=>{const c={save:{p1:{displayName:'$& <Captain>'}}};vm.createContext(c);vm.runInContext(html.slice(html.indexOf('function playerStoryName('),html.indexOf('function showCharacterPicker(')),c);assert.equal(c.personalStoryText('Jack’s car. Jack made it.'),'$& <Captain>’s car. $& <Captain> made it.');c.save.p1.displayName='';assert.equal(c.playerStoryName(),'Jack');});
+test('alternate comic characters map into opening, mission and workshop scene frames',()=>{assert.match(html,/9\+p.opening/);assert.match(html,/p.sheet\?15\+p.art:p.art/);assert.match(html,/personalComicArt\(appearance,frame,paint\)/);assert.match(html,/nameInput\.maxLength=28/);});
