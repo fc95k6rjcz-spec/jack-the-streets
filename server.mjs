@@ -28,7 +28,7 @@ export function createGameServer({port=4174,host='127.0.0.1'}={}){
    if(m.type==='position'){
     if(![m.x,m.y,m.a].every(Number.isFinite)||m.x<0||m.x>11520||m.y<0||m.y>8064||Math.abs(m.a)>10000)return;
     const now=Date.now(),elapsed=(now-player.updated)/1000;if(player.updated&&Math.hypot(m.x-player.state.x,m.y-player.state.y)>Math.max(180,elapsed*1400))return;
-    player.state={x:m.x,y:m.y,a:m.a,car:String(m.car||'pocket').replace(/[^a-z0-9]/g,'').slice(0,20),foot:!!m.foot,colour:/^#[0-9a-f]{6}$/i.test(m.colour)?m.colour:'#35b9a0'};player.updated=now;
+    player.state={x:m.x,y:m.y,a:m.a,car:String(m.car||'pocket').replace(/[^a-z0-9_]/g,'').slice(0,20),foot:!!m.foot,colour:/^#[0-9a-f]{6}$/i.test(m.colour)?m.colour:'#35b9a0'};player.updated=now;
    }else if(m.type==='claim'){
     if(!/^job-\d{3}$/.test(m.job)||Number(m.job.slice(4))<1||Number(m.job.slice(4))>300)return;
     const existing=room.claims.get(m.job),already=[...room.claims.values()].includes(player.id),ok=!already&&!room.completed.has(m.job)&&!existing;

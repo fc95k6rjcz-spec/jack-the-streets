@@ -40,7 +40,7 @@ function cutawayWalk(h,dt,kind){
 }
 const CUTAWAY_STATIONS={rest:[.635,.60],work:[.36,.60],supply:[.64,.69],snack:[.755,.68],garage:[.565,.76],room:[.69,.625],drive:[.455,.65]};
 for(const s of SAFEHOUSE_STATIONS){const p=CUTAWAY_STATIONS[s.id];if(p){s.x=p[0];s.y=p[1];}}
-SAFEHOUSE_STATIONS.push({id:'drive',x:.455,y:.65,n:'DRIVE OUT',hint:'Take your car into the city'});
+SAFEHOUSE_STATIONS.push({id:'drive',x:.455,y:.65,n:'GET IN',hint:'Get in and steer out yourself'});
 const actionBeforeCutaway=safehouseAction;safehouseAction=function(h,id){if(id==='drive')return driveGarageCar(h);return actionBeforeCutaway(h,id);};
 function cutawayInit(h,kind){const I=h.inside;if(I.cutaway===kind)return;I.cutaway=kind;I.px=kind==='garage'?.44:.475;I.py=kind==='garage'?.65:.39;I.a=-Math.PI/2;I.walkTo=null;I.path=null;}
 const enterBeforeCutaway=enterShop;enterShop=function(h,sh){enterBeforeCutaway(h,sh);if(sh.type==='ware'||sh.type==='bank')cutawayInit(h,sh.type==='ware'?'garage':'bank');};
@@ -55,7 +55,7 @@ updateSafehouse=function(h,dt){const I=h.inside;cutawayInit(h,'garage');I.t+=dt;
  h.shopMsgT=Math.max(0,(h.shopMsgT||0)-dt);
 };
 function cutawayFrame(vp,I){const header=42,footer=66,ratio=1.75,w=vp.w,H=vp.h;const phone=H<550&&w/H>1.8,rw=phone?w:Math.min(w,(H-header-footer)*ratio),rh=rw/ratio,ox=vp.x+(w-rw)/2,oy=phone?header-rh*.29:header+(H-header-footer-rh)/2;I.screen={ox,oy,rw,rh};return I.screen;}
-function drawCutawayActor(h,screen,time){const I=h.inside,{ox,oy,rw,rh}=screen;ctx.save();ctx.translate(ox+I.px*rw,oy+I.py*rh);const size=rw/1450;ctx.scale(size,size);drawPed({isJack:true,appearance:save[h.player]?.appearance||'redline',moving:!!I.walking,walkFrame:I.walkFrame??0,x:0,y:0,a:I.a??-Math.PI/2,ph:time/180,down:0,run:0},time);ctx.restore();}
+function drawCutawayActor(h,screen,time){const I=h.inside,{ox,oy,rw,rh}=screen;ctx.save();ctx.translate(ox+I.px*rw,oy+I.py*rh);const size=rw/1450;ctx.scale(size,size);drawPed({isJack:true,appearance:save[h.player]?.appearance||'redline',gunType:h.weaponHolstered===false?h.gun?.type:null,moving:!!I.walking,walkFrame:I.walkFrame??0,x:0,y:0,a:I.a??-Math.PI/2,ph:time/180,down:0,run:0},time);ctx.restore();}
 function cutawayLabel(text,x,y,selected=false){ctx.save();ctx.font='700 10px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';const w=ctx.measureText(text).width+20;ctx.fillStyle=selected?'#e8c27a':'#162b32df';ctx.beginPath();ctx.roundRect(x-w/2,y-12,w,24,6);ctx.fill();ctx.fillStyle=selected?'#162b32':'#f3e6c6';ctx.fillText(text,x,y);ctx.restore();}
 function cutawayHeader(vp,title,detail){ctx.save();ctx.fillStyle='#10212bef';ctx.fillRect(vp.x,0,vp.w,42);ctx.fillStyle='#edd09a';ctx.textAlign='left';ctx.font='800 13px system-ui';ctx.fillText(title,vp.x+14,17);ctx.fillStyle='#c7d0c8';ctx.font='11px system-ui';ctx.fillText(detail,vp.x+14,33);ctx.restore();}
 function cutawayWorkshopArt(h,screen){const {ox,oy,rw,rh}=screen;ctx.drawImage(CUTAWAY_WORKSHOP,ox,oy,rw,rh);const owned=homeImprovements(save[h.player]);if(!CUTAWAY_UPGRADED.complete||!CUTAWAY_UPGRADED.naturalWidth)return;const patch=(x,y,w,height)=>{ctx.save();ctx.beginPath();ctx.rect(ox+x*rw,oy+y*rh,w*rw,height*rh);ctx.clip();ctx.drawImage(CUTAWAY_UPGRADED,ox,oy,rw,rh);ctx.restore();};if(owned.floor){patch(.20,.40,.64,.40);if(!owned.living){ctx.save();ctx.beginPath();ctx.rect(ox+.64*rw,oy+.41*rh,.20*rw,.28*rh);ctx.clip();ctx.drawImage(CUTAWAY_WORKSHOP,ox,oy,rw,rh);ctx.restore();}}if(owned.living)patch(.64,.41,.20,.28);if(owned.storage)patch(.65,.69,.19,.11);else if(owned.floor){ctx.save();ctx.beginPath();ctx.rect(ox+.65*rw,oy+.69*rh,.19*rw,.11*rh);ctx.clip();ctx.drawImage(CUTAWAY_WORKSHOP,ox,oy,rw,rh);ctx.restore();}if(typeof paintWorkshopEstate==='function')paintWorkshopEstate(h,{ox,oy,rw,rh});}
@@ -65,7 +65,7 @@ const safehouseDrawBeforeCutaway=drawSafehouse;drawSafehouse=function(vp,h,time,
  // One active label; the bottom dock carries the other actions.
  if(typeof drawWorkshopEstateLabels==='function')drawWorkshopEstateLabels(h,S);
  if(I.station&&I.driveOut==null)cutawayLabel(I.station.id==='work'&&isBrokenGarage(I.sh)?'REPAIR GARAGE':I.station.n,ox+I.station.x*rw,oy+I.station.y*rh-25,true);
- ctx.restore();cutawayHeader(vp,playerStoryName().toUpperCase()+'’S WORKSHOP',money(save[h.player].cash)+' · '+(besideGarageCar(I)?'TAP THE CAR OR PRESS ENTER TO DRIVE OUT':isBrokenGarage(I.sh)?'YOUR FIRST PROJECT':'HOME & SAFEHOUSE'));
+ ctx.restore();cutawayHeader(vp,playerStoryName().toUpperCase()+'’S WORKSHOP',money(save[h.player].cash)+' · '+(besideGarageCar(I)?'TAP THE CAR OR PRESS ENTER TO GET IN':isBrokenGarage(I.sh)?'YOUR FIRST PROJECT':'HOME & SAFEHOUSE'));
  if(h.shopMsgT>0)cutawayLabel(h.shopMsg,vp.x+vp.w/2,vp.h-79);
  if(I.driveOut!=null)cutawayLabel('HEADING OUT · '+d.n.toUpperCase(),vp.x+vp.w/2,vp.h-80);ctx.restore();};
 // Keep the workshop controls off the artwork, on tablets as well as phones.
