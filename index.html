@@ -3806,9 +3806,11 @@ function openStoreDirectory(h){cityModal('CITY SHOPPING · STORES & CAR DEALERS'
 function drawRetailInterior(vp,c,time,u){const I=c.inside,sh=I.sh,store=retailDefinition(sh.type),x=vp.x,w=vp.w,h=vp.h;
  paintRetailRoom(ctx,x,w,h,store,time,I.done);
  ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=RETAIL_THEMES[store.theme].accent;ctx.font='900 '+Math.min(28*u,w/Math.max(12,store.name.length*.65))+'px Bungee,sans-serif';ctx.fillText(store.name,x+w*.5,h*.12);ctx.restore();
- const px=x+w*(I.px??.5),py=h*(I.py??.78);ctx.save();ctx.translate(px,py);ctx.scale(1.4*u,1.4*u);drawPlayerLook({x:0,y:0,a:-Math.PI/2,gunType:c.weaponHolstered===false?c.gun?.type:null,appearance:save[c.player].appearance||'redline',moving:held(c.keyset,'up')||held(c.keyset,'down')||held(c.keyset,'left')||held(c.keyset,'right'),walkFrame:Math.floor(time/150)%4},time);ctx.restore();
- ctx.save();ctx.translate(x+w*.46,h*.205);ctx.scale(1.05*u,1.05*u);drawPlayerLook({x:0,y:0,a:Math.PI/2,appearance:'coast'},time);ctx.restore();
- for(const cop of cops)for(const o of cop.offs||[])if(o.room===sh.id){ctx.save();ctx.translate(x+w*o.rx,h*o.ry);ctx.scale(2.5*u,2.5*u);drawPed({...o.pd,x:0,y:0,a:-Math.PI/2,ph:time/180,shirt:'#1c2a4a',down:o.down>0?1:0,run:1,cross:null},time);ctx.restore();drawSpeechBubble(o,x+w*o.rx,h*o.ry-24*u,u);}
+ const moving=held(c.keyset,'up')||held(c.keyset,'down')||held(c.keyset,'left')||held(c.keyset,'right')||Math.abs(stickFor(c)?.x||0)+Math.abs(stickFor(c)?.y||0)>.1;
+ const actors=[{px:I.px??.5,py:I.py??.78,look:save[c.player].appearance||'redline',moving},{px:.46,py:.29,look:'coast',cashier:true}];
+ for(const cop of cops)for(const o of cop.offs||[])if(o.room===sh.id)actors.push({px:o.rx,py:o.ry,look:'coast',moving:o.down<=0,officer:o});
+ actors.sort((a,b)=>a.py-b.py);
+ for(const actor of actors){drawRetailPerson(ctx,x+w*actor.px,h*actor.py,h,actor,time);retailOcclude(ctx,x,w,h,store,time,I.done,actor);if(actor.officer)drawSpeechBubble(actor.officer,x+w*actor.px,h*actor.py-h*.16,u);}
  const empty=(sh.robbedAt??-999)>simT-120&&!I.done;
  const text=sh.type==='hardware'&&!camp().garageLevel?(camp().garageSupplies?'REPAIR PACK COLLECTED · LEAVE AND DRIVE BACK TO YOUR GARAGE':'YOUR NEXT STEP · TAP COLLECT REPAIR PACK · FREE'):I.done?'ALARM! +'+money(I.amt)+' · FIND THE EXIT':empty?'TILL EMPTY · SHOPPING STILL OPEN':I.robT>0?'CASHIER: “PLEASE, DON’T HURT ANYONE!”':'WELCOME · SHOP, EXPLORE OR ROB';
  ctx.save();ctx.fillStyle='rgba(20,29,34,.88)';ctx.beginPath();ctx.roundRect(x+w*.18,h*.81,w*.64,h*.057,6);ctx.fill();ctx.fillStyle=I.done?'#ffad87':'#fff0ca';ctx.font='bold '+Math.min(16*u,w/30)+'px sans-serif';ctx.textAlign='center';ctx.fillText(text,x+w*.5,h*.845);if(I.robT>0&&!I.done){ctx.fillStyle='#ea6956';ctx.fillRect(x+w*.18,h*.868,w*.64*Math.min(1,I.robT/4),4);}ctx.restore();drawPursuitHUD(vp,c,u);
@@ -4882,6 +4884,39 @@ openPhone=function(h){
 };
 
 // SMARTPHONE APPS END
+// RETAIL DEPTH BEGIN
+/* A consistent cutaway projection: upright actors with feet on the floor. */
+function drawRetailPerson(g,x,y,h,actor,time){
+ const look=CHARACTER_LOOKS.find(l=>l.id===actor.look)||CHARACTER_LOOKS[0];
+ const size=h*(.145+.035*actor.py),step=actor.moving?Math.floor(time/145)%4:0;
+ g.save();g.translate(x,y);
+ const shadow=g.createRadialGradient(0,0,0,0,0,size*.29);shadow.addColorStop(0,'rgba(12,16,18,.6)');shadow.addColorStop(1,'rgba(12,16,18,0)');
+ g.save();g.scale(1,.36);g.fillStyle=shadow;g.beginPath();g.arc(0,0,size*.29,0,Math.PI*2);g.fill();g.restore();
+ if(CHARACTER_SPRITES.complete&&CHARACTER_SPRITES.naturalWidth){const cw=CHARACTER_SPRITES.naturalWidth/4,ch=CHARACTER_SPRITES.naturalHeight/6;g.drawImage(CHARACTER_SPRITES,step*cw,look.row*ch,cw,ch,-size*.5,-size*.97,size,size);}
+ else{g.scale(size/48,size/48);drawPlayerLook({x:0,y:-22,a:-Math.PI/2,appearance:actor.look},time);}
+ if(actor.officer){g.fillStyle='#74b7f2';g.font='bold '+Math.max(8,size*.075)+'px sans-serif';g.textAlign='center';g.fillText('POLICE',0,-size*.52);}
+ g.restore();
+}
+function retailOcclude(g,x,w,h,store,time,alarm,actor){
+ if(!COASTAL_RETAIL_ART.complete||!COASTAL_RETAIL_ART.naturalWidth)return;
+ const fixtures=retailFixtures(store.theme).concat([{x:.40,y:.205,w:.30,h:.105}]);
+ for(const f of fixtures){if(actor.py>f.y+f.h||actor.py<f.y-.14||actor.px<f.x-.045||actor.px>f.x+f.w+.045)continue;
+  g.save();g.beginPath();g.rect(x+f.x*w,f.y*h,f.w*w,f.h*h);g.clip();paintRetailRoom(g,x,w,h,store,time,alarm);g.restore();
+ }
+}
+const retailBeforeDepth=drawRetailInterior;
+drawRetailInterior=function(vp,c,time,u){
+ // Match the original illustrated room's proportions instead of stretching it.
+ const aspect=COASTAL_RETAIL_ART.naturalWidth?COASTAL_RETAIL_ART.naturalWidth/4/(COASTAL_RETAIL_ART.naturalHeight/2):1.5;
+ const height=Math.min(vp.h,vp.w/aspect),width=height*aspect,left=vp.x+(vp.w-width)/2,top=(vp.h-height)/2;
+ ctx.save();ctx.fillStyle='#101b22';ctx.fillRect(vp.x,0,vp.w,vp.h);ctx.translate(0,top);
+ retailBeforeDepth({ ...vp,x:left,w:width,h:height },c,time,u);
+ // Recessed wall edges and a soft foreground falloff give the room volume.
+ const shade=ctx.createLinearGradient(0,0,0,height);shade.addColorStop(0,'#08101830');shade.addColorStop(.3,'#08101800');shade.addColorStop(.75,'#08101800');shade.addColorStop(1,'#08101838');ctx.fillStyle=shade;ctx.fillRect(left,0,width,height);
+ ctx.restore();
+};
+
+// RETAIL DEPTH END
 bootComicGame();
 requestAnimationFrame(frame);
 })();
