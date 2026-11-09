@@ -1,0 +1,12 @@
+#phone.smartphone{left:auto;right:16px;bottom:16px;width:min(340px,calc(100vw - 24px));max-height:calc(100dvh - 24px);box-sizing:border-box;border:6px solid #151b26;border-radius:32px;padding:16px;background:radial-gradient(ellipse at top left,#35546b,transparent 65%),linear-gradient(155deg,#172e42,#172133 60%,#513c50);box-shadow:0 18px 60px #0009;z-index:85;overflow:auto}
+#phone.smartphone .ph-top{font-size:16px;letter-spacing:2px;color:#fff;padding:8px 0 16px;border-bottom:1px solid #ffffff25}
+#phone.smartphone .phone-home{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 6px;padding:10px 0 18px}
+#phone.smartphone button.phone-app{display:flex;flex-direction:column;gap:7px;justify-content:center;border:0;background:transparent;margin:0;padding:5px 0;text-align:center;font-size:12px;min-height:84px}
+.phone-app-icon{display:grid;place-items:center;width:56px;height:56px;border-radius:16px;font:bold 30px sans-serif;color:#fff;box-shadow:inset 0 2px 1px #ffffff40,0 5px 10px #0004}
+#phone.smartphone button:focus-visible{outline:3px solid #ffcf51;outline-offset:2px}
+#phone.smartphone .ph-foot{display:flex;gap:8px;font-size:12px;border-top:1px solid #ffffff25;padding-top:8px}
+body.touch #phone.smartphone .ph-foot:after{content:none}
+#phone.smartphone .ph-foot button{justify-content:center;font-size:12px;min-height:44px}
+.phone-home-heading,.phone-sender{color:#b5cddd;font-size:11px;letter-spacing:1px}
+.phone-note{line-height:1.5;font-size:13px}.phone-bubble{background:#dcebf4;color:#142b38;padding:16px;border-radius:18px 18px 18px 3px;line-height:1.6;font-size:14px}.phone-balance{font-size:25px;color:#ffe09a;margin:16px 0}.phone-card{background:linear-gradient(120deg,#7960b0,#393458);border:1px solid #c6afe5;padding:20px 12px;border-radius:14px}.phone-photo{width:100%;height:auto;border-radius:12px}#phone.smartphone button:disabled{opacity:.45;cursor:default}
+@media(max-height:500px){#phone.smartphone{bottom:6px;right:6px;max-height:calc(100dvh - 12px);padding:8px 14px}#phone.smartphone .phone-home{gap:2px;padding:0}#phone.smartphone .phone-home-heading{margin:6px 0}#phone.smartphone button.phone-app{min-height:65px;gap:3px}.phone-app-icon{width:42px;height:42px;border-radius:12px;font-size:25px}#phone.smartphone .ph-top{padding:4px 0 8px}}
