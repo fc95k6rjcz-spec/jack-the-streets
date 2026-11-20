@@ -10,3 +10,7 @@ body.touch #phone.smartphone .ph-foot:after{content:none}
 .phone-home-heading,.phone-sender{color:#b5cddd;font-size:11px;letter-spacing:1px}
 .phone-note{line-height:1.5;font-size:13px}.phone-bubble{background:#dcebf4;color:#142b38;padding:16px;border-radius:18px 18px 18px 3px;line-height:1.6;font-size:14px}.phone-balance{font-size:25px;color:#ffe09a;margin:16px 0}.phone-card{background:linear-gradient(120deg,#7960b0,#393458);border:1px solid #c6afe5;padding:20px 12px;border-radius:14px}.phone-photo{width:100%;height:auto;border-radius:12px}#phone.smartphone button:disabled{opacity:.45;cursor:default}
 @media(max-height:500px){#phone.smartphone{bottom:6px;right:6px;max-height:calc(100dvh - 12px);padding:8px 14px}#phone.smartphone .phone-home{gap:2px;padding:0}#phone.smartphone .phone-home-heading{margin:6px 0}#phone.smartphone button.phone-app{min-height:65px;gap:3px}.phone-app-icon{width:42px;height:42px;border-radius:12px;font-size:25px}#phone.smartphone .ph-top{padding:4px 0 8px}}
+
+.retail-balance{display:flex;align-items:center;justify-content:space-between;gap:10px}.retail-balance h2{margin:0!important;font-size:22px!important}.retail-balance span{font-size:10px}
+
+#cityModal .warehouse-menu:has(.retail-balance)>h2{font-size:22px;margin:6px 0 10px}#cityModal .warehouse-menu:has(.retail-balance)>p{padding:8px;font-size:13px;margin:8px 0}#cityModal .warehouse-menu:has(.retail-balance) .warehouse-option{padding:12px}

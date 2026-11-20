@@ -18,10 +18,10 @@ function makeSuburbanBlock(ax,ay,w,h,bi,bj){
   const seed=side*19+row*7,lot={x0:x0+side*lotW,y0:y0+row*lotH,x1:x0+(side+1)*lotW,y1:y0+(row+1)*lotH},rw=T*(1.3+random(seed+1)*.3),rh=Math.min(lotH*.7,T*(.92+random(seed+2)*.3)),hx=side?lot.x1-rw-T*.35:lot.x0+T*.35,hy=lot.y0+lotH*(.13+random(seed+5)*.08);
   addBuilding(Math.floor(hx/T),Math.floor(hy/T),Math.ceil(rw/T),Math.ceil(rh/T));const house=buildings.at(-1);Object.assign(house,{x0:hx,y0:hy,x1:hx+rw,y1:hy+rh,h:1,residential:true,lot,roofVariant:Math.floor(random(seed+3)*6),cells:null,pad:false,ac:[],front:side?1:-1});block.houses.push(house);
   const driveY=hy+rh*.7,driveEnd=side?house.x1:house.x0,driveStart=side?block.x1+T:block.x0-T;house.drive={x0:Math.min(driveStart,driveEnd),x1:Math.max(driveStart,driveEnd),y:driveY};
-  if(random(seed+4)>.32){const px=side?lot.x0+lotW*.21:lot.x1-lotW*.37,py=lot.y0+lotH*.3;house.pool={x:px,y:py,w:lotW*.11,h:lotH*.48};}
+  if(random(seed+4)>.64){const px=side?lot.x0+lotW*.21:lot.x1-lotW*.37,py=lot.y0+lotH*.3;house.pool={x:px,y:py,w:lotW*.11,h:lotH*.48};}
   for(const [j,edge]of [lot.y0+18,lot.y1-18].entries())trees.push({x:side?lot.x0+70+random(seed+60+j)*45:lot.x1-70-random(seed+60+j)*45,y:edge+(random(seed+65+j)-.5)*18,r:27+random(seed+50+j)*15,suburban:true,canopy:(row+j)%2});
   if(row%2===0)trees.push({x:side?block.x1+45:block.x0-45,y:lot.y0+lotH*.85,r:19+random(seed+70)*10,suburban:true,canopy:side});
-  for(let j=0;j<4;j++){const tx=side?lot.x0+lotW*(.12+random(seed+20+j)*.35):lot.x0+lotW*(.57+random(seed+20+j)*.32),ty=lot.y0+lotH*(.12+random(seed+30+j)*.75);if(house.pool&&tx>house.pool.x-22&&tx<house.pool.x+house.pool.w+22&&ty>house.pool.y-22&&ty<house.pool.y+house.pool.h+22)continue;trees.push({x:tx,y:ty,r:24+random(seed+40+j)*18,suburban:true,canopy:j%2});}
+  for(let j=0;j<2+Math.floor(random(seed+80)*3);j++){const tx=side?lot.x0+lotW*(.12+random(seed+20+j)*.35):lot.x0+lotW*(.57+random(seed+20+j)*.32),ty=lot.y0+lotH*(.12+random(seed+30+j)*.75);if(house.pool&&tx>house.pool.x-22&&tx<house.pool.x+house.pool.w+22&&ty>house.pool.y-22&&ty<house.pool.y+house.pool.h+22)continue;trees.push({x:tx,y:ty,r:24+random(seed+40+j)*18,suburban:true,canopy:j%2});}
  }
  if((bi+bj)%3===0)block.lane={x:x0+width/2,y0:y0+height*.54,y1:block.y1+T*2};
  for(let r=Math.floor(y0/T);r<=Math.floor(block.y1/T);r++)for(let c=ax-((ax-2)*T===15*T?0:1);c<ax+w+((ax+w+2)*T===15*T?0:1);c++)state.cells.set(c+r*COLS,{block,houses:block.houses});
