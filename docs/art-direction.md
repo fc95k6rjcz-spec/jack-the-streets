@@ -21,3 +21,18 @@ Generated with the same built-in image tool and encoded to WebP. Existing comic 
 - `assets/comic-people.webp`: four frames by three rows, upright overhead people with compact silhouettes. Street police in navy cap/uniform; tactical police with helmet/armour; grey-haired mechanic in blue. Idle/left-step/passing/right-step columns. No floor, full-body front view, labels or exterior shadows.
 - `assets/comic-shops.webp`: three-by-three location atlas with textured coastal materials and restrained graphic-novel inks. Fuel station, diner, mechanic, convenience store, bank, gun shop, warehouse, spray booth, waterfront cafe. No text, people or cars. Runtime placement uses existing building parcels so artwork cannot become a building across a road.
 - `assets/comic-trees.webp`: three-by-two transparent directly-overhead canopies: Norfolk pine, eucalyptus, jacaranda, palm, coastal shrub, snow-dusted pine. Natural greens, detailed leaves/branches, matching ink and restrained halftones. No floor, horizon, labels or exterior shadows.
+
+## Northern Beaches road and sprint pass
+
+Headland Cut adds a driveable curved connector through the previously
+unbuilt bush parcel northwest of the city. The existing orthogonal
+streets remain a longer alternate. It uses the same asphalt and warm
+ivory centre paint as other curved roads. The wider streets use ochre
+median paint; smaller streets use ivory dashes. Crosswalks and line paint
+are bounded to actual pavement so they do not carry across the coast.
+
+In the solo Northern Beaches city, open Jack's phone and choose **Sprint**.
+Pick **Headland Cut** or **Town Grid**, then drive through the indicated
+start line in the marked direction. Each route has two ordered
+checkpoints and a finish, and separately remembers your fastest time.
+There are no purchases, power-ups or cash changes.
