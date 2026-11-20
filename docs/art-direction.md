@@ -36,3 +36,11 @@ Pick **Headland Cut** or **Town Grid**, then drive through the indicated
 start line in the marked direction. Each route has two ordered
 checkpoints and a finish, and separately remembers your fastest time.
 There are no purchases, power-ups or cash changes.
+
+The follow-up street pass distinguishes wider zebra crossings, low-traffic
+give-way marks and muted terracotta coastal crossings. Stone and sandstone
+curbs share joint spacing and drainage details. Painted wayfinding
+marks name the routes at the Headland junctions; the board location is
+checked against roofs, shops and trees, with a flat shoulder marking
+used instead where the verge is too busy. These are visual changes only:
+road widths, collisions, routes and existing artwork do not change.

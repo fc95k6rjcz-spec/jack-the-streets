@@ -2949,7 +2949,8 @@ function drawGround(v,time){
       ctx.strokeStyle=k===DEEP?'rgba(255,255,255,.18)':'rgba(255,255,255,.35)';ctx.lineWidth=3;
       for(let q=0;q<2;q++){const ph=time/700+c*.7+r*1.3+q*2,ox=c*T+18+q*40+Math.sin(ph)*10,oy=r*T+28+q*38;ctx.beginPath();ctx.moveTo(ox,oy);ctx.quadraticCurveTo(ox+10,oy-6,ox+20,oy);ctx.quadraticCurveTo(ox+30,oy+6,ox+40,oy);ctx.stroke();}}}
   drawWaterSurface(v,time);
-  for(let r=r0;r<=r1;r++)for(let c=c0;c<=c1;c++){if(tile[r*COLS+c]!==PAVE)continue;
+  if(curMap==='big')drawCoastalCurbs(c0,c1,r0,r1);
+  else for(let r=r0;r<=r1;r++)for(let c=c0;c<=c1;c++){if(tile[r*COLS+c]!==PAVE)continue;
     for(const [dc,dr,x,y,w,h] of [[0,-1,0,0,T,7],[0,1,0,T-7,T,7],[-1,0,0,0,7,T],[1,0,T-7,0,7,T]]){if(at(c+dc,r+dr)!==ROAD)continue;
       const n=8;for(let k=0;k<n;k++){ctx.fillStyle=k%4===0?'#b4b6ad':'#999e98';if(w>h)ctx.fillRect(c*T+x+k*T/n,r*T+y,T/n+.5,h);else ctx.fillRect(c*T+x,r*T+y+k*T/n,w,T/n+.5);}
       ctx.fillStyle='rgba(255,255,255,.28)';if(w>h)ctx.fillRect(c*T+x,r*T+y+(dr<0?0:h-2),T,2);else ctx.fillRect(c*T+x+(dc<0?0:w-2),r*T+y,2,T);
@@ -5351,7 +5352,7 @@ mobileObjectiveText=function(c){return sprintRun?.actor===c?'':mobileObjectiveBe
 // COASTAL SPRINT END
 // STREET PAINT BEGIN
 /* Coastal comic street palette. Paint follows physical roads, not empty sea tiles. */
-const STREET_PAINT={ink:'#24363c',cream:'#ebe2c9',gold:'#e1bd64',teal:'#7bbbb1'};
+const STREET_PAINT={ink:'#24363c',cream:'#ebe2c9',gold:'#e1bd64',teal:'#7bbbb1',sand:'#cbb59a',stone:'#a8a8a1',mortar:'#777d76'};
 function paintedRoad(x,y){return [ROAD,CROAD].includes(at(Math.floor(x/T),Math.floor(y/T)));}
 function streetRoadStroke(horizontal,centre,from,to,offset){
  ctx.beginPath();
@@ -5388,16 +5389,111 @@ drawRoadMarkings=function(v){
   const x=IX[i],y=IY[j];if(x===CITY_WORKS.freewayX||x<v.x0-150||x>v.x0+v.w+150||y<v.y0-150||y>v.y0+v.h+150||!paintedRoad(x,y))continue;
   for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
    if(!paintedRoad(x+dx*(T+32),y+dy*(T+32)))continue;
-   // Crosswalks at busier junctions; smaller streets have a give-way line.
-   ctx.save();ctx.translate(x+dx*(T+21),y+dy*(T+21));ctx.rotate(Math.atan2(dy,dx));
-   ctx.fillStyle='rgba(235,226,201,.67)';
-   if((i+j)%3===0)for(let k=-3;k<=3;k++)ctx.fillRect(-11,k*20-5,22,10);
-   else{ctx.fillRect(0,7,3,66);ctx.fillStyle='rgba(235,226,201,.42)';for(let k=0;k<3;k++)ctx.fillRect(-7,15+k*22,2,11);}
-   ctx.restore();
+   const approach=roadKind(dx?'h':'v',dx?j:i),farX=x+dx*(T+45),farY=y+dy*(T+45);
+   const sidewalks=[-1,1].every(side=>at(Math.floor((farX+dy*side*(T+9))/T),Math.floor((farY+dx*side*(T+9))/T))===PAVE);
+   const type=crossingStyle(approach,sidewalks,(i+j)%3===0);
+   ctx.save();ctx.translate(x+dx*(T+23),y+dy*(T+23));ctx.rotate(Math.atan2(dy,dx));drawStreetCrossing(type);ctx.restore();
   }
  }
  ctx.restore();
 };
+
+function crossingStyle(approach,sidewalks,selected){
+ if(!sidewalks)return 'line';
+ if(approach==='coastal')return 'surf';
+ return approach==='arterial'||selected?'zebra':'give-way';
+}
+function drawStreetCrossing(type){
+ ctx.fillStyle='rgba(235,226,201,.66)';
+ if(type==='line'){ctx.fillRect(0,8,4,66);return;}
+ if(type==='give-way'){
+  for(let i=0;i<4;i++){ctx.beginPath();ctx.moveTo(4,15+i*18);ctx.lineTo(-7,10+i*18);ctx.lineTo(-7,20+i*18);ctx.closePath();ctx.fill();}
+  return;
+ }
+ // The "surf" band is paint over asphalt, not a raised physics obstacle.
+ if(type==='surf'){ctx.fillStyle='rgba(168,111,85,.46)';ctx.fillRect(-24,-90,48,180);}
+ ctx.fillStyle=STREET_PAINT.cream;ctx.globalAlpha=.78;
+ for(let i=-4;i<=4;i++)ctx.fillRect(-15,i*18-4,30,8);
+ ctx.globalAlpha=.5;ctx.fillRect(-22,-86,2,172);ctx.fillRect(20,-86,2,172);
+}
+function drawCoastalCurbs(c0,c1,r0,r1){
+ const edges=[[0,-1,0,0,T,7],[0,1,0,T-7,T,7],[-1,0,0,0,7,T],[1,0,T-7,0,7,T]];
+ ctx.save();
+ for(let r=r0;r<=r1;r++)for(let c=c0;c<=c1;c++){
+  if(at(c,r)!==PAVE)continue;
+  for(const [dc,dr,dx,dy,w,h] of edges){
+   if(at(c+dc,r+dr)!==ROAD)continue;
+   const x=c*T+dx,y=r*T+dy,horizontal=!!dr,coast=CITY==='nb'&&((horizontal?r:c)>=(horizontal?103:81));
+   ctx.fillStyle=coast?STREET_PAINT.sand:STREET_PAINT.stone;ctx.fillRect(x,y,w,h);
+   ctx.fillStyle='#e4d5b5';ctx.fillRect(x+(horizontal?0:dc<0?1:5),y+(horizontal?(dr<0?1:5):0),horizontal?w:1,horizontal?1:h);
+   ctx.fillStyle=STREET_PAINT.mortar;
+   for(let k=0;k<T;k+=32)ctx.fillRect(x+(horizontal?k:0),y+(horizontal?0:k),horizontal?1:w,horizontal?h:1);
+   // Short drains provide useful local scale without any physical obstacles.
+   if((c*11+r*7+(dc+dr+1)*5)%11===0){
+    ctx.fillStyle=STREET_PAINT.ink;ctx.fillRect(x+(horizontal?36:1),y+(horizontal?1:36),horizontal?23:5,horizontal?5:23);
+    ctx.fillStyle='#8b938d';for(let k=40;k<59;k+=5)ctx.fillRect(x+(horizontal?k:2),y+(horizontal?2:k),horizontal?1:3,horizontal?3:1);
+   }
+  }
+ }
+ ctx.restore();
+}
+let headlandSignCache=null;
+function findWayfindingVerge(node,dx,dy,clear){
+ for(const over of [146,144,159,188,224,-146,-144,-159,-188,-224])for(const ahead of [290,240,325,385,450,515,580]){
+  const x=node.x+dx*ahead,y=node.y+dy*over;
+  if(clear(x,y))return {x,y};
+ }
+ return null;
+}
+function headlandSignSites(){
+ if(CITY!=='nb'||curMap!=='big'||!CURVES[3])return[];
+ if(headlandSignCache?.tile===tile)return headlandSignCache.sites;
+ const curve=CURVES[3],dry=(x,y)=>{
+  const ww=110,hh=35;
+  for(const ox of [-ww,0,ww])for(const oy of [-hh,0,hh])if(![PARK,PAVE].includes(surface(x+ox,y+oy)))return false;
+  const near=(px,py,pw,ph)=>Math.abs(x-px)<ww+pw&&Math.abs(y-py)<hh+ph;
+  return !buildings.some(b=>x+ww>b.x0&&x-ww<b.x1&&y+hh>b.y0&&y-hh<b.y1)
+   &&!trees.some(t=>near(t.x,t.y,t.r,t.r))
+   &&!SHOPS.some(s=>near(s.x,s.y,s.w/2+8,s.h/2+8))
+   &&!CITY_WORKS.parks.some(s=>near(s.x,s.y,s.w/2,s.h/2))
+   &&!CITY_WORKS.pads.some(s=>near(s.x,s.y,60,60))
+   &&!IY.some(ry=>IX.some(rx=>near(rx+(rx===CITY_WORKS.freewayX?235:135),ry+135,85,15)));
+ };
+ const east=curve[0],verge=findWayfindingVerge(east,1,-1,dry);
+ // The east approach has busy shop and street-sign frontage. Mark the
+ // empty asphalt shoulder instead of allowing a roadside board to overlap.
+ const shoulder={x:east.x+530,y:east.y+56};
+ const flat=[-98,98].every(dx=>[-24,24].every(dy=>paintedRoad(shoulder.x+dx,shoulder.y+dy)));
+ const sites=[
+  {p:verge||(flat?shoulder:null),flat:!verge,short:'←',grid:'↑',name:'HEADLAND JUNCTION'},
+  {p:findWayfindingVerge(curve.at(-1),-1,1,dry),short:'↘',grid:'→',name:'NORTH HEADLAND'}
+ ].filter(s=>s.p);
+ headlandSignCache={tile,sites};return sites;
+}
+function drawHeadlandWayfinding(v){
+ const points=headlandSignSites().filter(s=>s.p.x>v.x0-120&&s.p.x<v.x0+v.w+120&&s.p.y>v.y0-60&&s.p.y<v.y0+v.h+60);
+ if(!points.length)return;
+ ctx.save();ctx.textAlign='left';ctx.textBaseline='middle';
+ for(const {p,short,grid,name,flat} of points){const {x,y}=p;
+  if(flat){
+   ctx.fillStyle='rgba(62,98,89,.55)';ctx.fillRect(x-96,y-22,192,44);
+   ctx.strokeStyle='rgba(235,226,201,.52)';ctx.lineWidth=1.5;ctx.strokeRect(x-95,y-21,190,42);
+   ctx.fillStyle=STREET_PAINT.cream;ctx.font='800 14px "Chakra Petch",sans-serif';
+   ctx.fillText(short+'  HEADLAND CUT',x-85,y-8,170);ctx.fillText(grid+'  TOWN GRID',x-85,y+8,170);
+   continue;
+  }
+  ctx.fillStyle='rgba(22,29,24,.38)';ctx.fillRect(x-104,y-22,216,56);
+  ctx.fillStyle=STREET_PAINT.ink;ctx.fillRect(x-108,y-28,216,56);
+  ctx.fillStyle='#315950';ctx.fillRect(x-104,y-24,208,48);
+  ctx.strokeStyle=STREET_PAINT.sand;ctx.lineWidth=1;ctx.strokeRect(x-103,y-23,206,46);
+  ctx.fillStyle=STREET_PAINT.gold;ctx.font='700 10px "Chakra Petch",sans-serif';ctx.fillText(name,x-94,y-16,190);
+  ctx.fillStyle=STREET_PAINT.cream;ctx.font='800 14px "Chakra Petch",sans-serif';
+  ctx.fillText(short+'  HEADLAND CUT',x-94,y-1,190);ctx.fillText(grid+'  TOWN GRID',x-94,y+15,190);
+ }
+ ctx.restore();
+}
+const groundBeforeWayfinding=drawCityExpansionGround;
+drawCityExpansionGround=function(v,time){groundBeforeWayfinding(v,time);drawHeadlandWayfinding(v);};
 
 // STREET PAINT END
 bootComicGame();
