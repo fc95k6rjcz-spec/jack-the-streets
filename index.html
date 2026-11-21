@@ -1799,7 +1799,7 @@ function addWanted(c,v){if(v>0&&c.human&&!c.law)recordCrime(c,'OFFENCE REPORTED'
 const FOOTDEF={...CAT.pocket,id:'foot',n:'On foot'};
 function vehOf(h){return{tyres:h.tyres||0,boat:h.boat,boatKind:h.boatKind,hot:h.hot,stolenOrigin:h.stolenOrigin,fuel:h.fuel,def:h.def,st:h.st,r:h.r,m:h.m,look:h.look,color:h.color,up:h.up,dmg:h.dmg,bl:h.bl,copCar:h.copCar,copPic:h.copPic,tank:h.tank,home:h.inHome,owner:h};}
 function applyVeh(h,v){h.tyres=v.tyres||0;h.flat=h.tyres?1:0;h.boat=!!v.boat;h.boatKind=v.boatKind||0;h.hot=!!v.hot;h.stolenOrigin=!!(v.stolenOrigin||v.hot);h.fuel=v.fuel==null?30+rnd()*60:v.fuel;h.def=v.def;h.st=v.st;h.r=v.r;h.m=v.m;h.look=v.look;h.color=v.color;h.up=v.up;h.dmg=v.dmg;h.bl=v.bl;h.blNF=null;h.copCar=!!v.copCar;h.copPic=v.copPic??0;h.tank=!!v.tank;h.inHome=!!v.home;if(h.human&&save[h.player]?.owned.includes(h.def.id)){h.up={...upOf(save[h.player],h.def.id)};h.st=effStats(h.def,h.up,h.look?.wheel||'std');h.bl=bling(h.up);h.blNF=null;}}
-function stealable(h){let best=null,bd=touchOn()?150:95;for(const t of traffic){const d=Math.hypot(t.x-h.x,t.y-h.y)-t.r;if(d<bd&&!(t.state==='loose'&&Math.hypot(t.vx,t.vy)>120)){bd=d;best=t;}}
+function stealable(h){let best=null,bd=55;for(const t of traffic){const d=Math.hypot(t.x-h.x,t.y-h.y)-t.r;if(d<bd&&!(t.state==='loose'&&Math.hypot(t.vx,t.vy)>120)){bd=d;best=t;}}
   for(const c of cops){if(c.dead||c.sinkK>0)continue;const d=Math.hypot(c.x-h.x,c.y-h.y)-c.r;if(d<bd&&Math.hypot(c.vx,c.vy)<200){bd=d;best=c;}}
   if(CAMP()||CHASE())for(const b of boats){const d=Math.hypot(b.x-h.x,b.y-h.y)-60;if(d<Math.max(bd,110)){bd=d;best={isBoat:true,b,x:b.x,y:b.y,dx:b.x,dy:b.y,a:b.a,r:34};}}return best;}
 function toggleFoot(h){if(h.jail)return;
@@ -1817,7 +1817,7 @@ function toggleFoot(h){if(h.jail)return;
     h.foot=true;h.def=FOOTDEF;h.dmg=h.body||0;h.r=13;h.m=.5;h.x=ox;h.y=oy;h.vx=h.vy=0;h.fs=0;h.copCar=false;h.inHome=false;h.boost=0;h.nitroOn=false;h.spin=0;
     sfx(420,.08,'square');setTimeout(()=>sfx(300,.08,'square'),70);popText(h.x,h.y-40,'ON FOOT!','#f6efd9');return;}
   const t=stealable(h);if(!t){popText(h.x,h.y-40,'NO CAR NEARBY','#ffcc33');sfx(140,.15,'square',-40);return;}
-  if(t.civ&&t.locked&&t.veh?.owner!==h){h.msg='DOORS LOCKED · FIND ANOTHER VEHICLE';h.msgT=3;popText(t.x,t.y-50,'DOORS LOCKED','#ffcc33');sfx(140,.15,'square',-40);return;}
+  if(t.civ&&t.locked&&t.veh?.owner!==h){h.doorTried={target:t,until:simT+2};h.msg='Jack tries the handle. Locked.';h.msgT=2;sfx(140,.15,'square',-40);return;}
   if(t.civ&&!t.veh&&!t.isBoat&&t.state==='drive'&&(!t.driverRemoved||h.theft)&&!resistCarTheft(h,t))return;
   h.body=h.dmg;let v;
   if(t.isBoat){const b=t.b;boats.splice(boats.indexOf(b),1);v={def:BOATDEF,st:boatSt(),r:30,m:1.4,look:{paint:null,wheel:'std'},color:b.col,up:{...ZERO},dmg:0,bl:bling(ZERO),boat:true,boatKind:b.kind,fuel:100};
@@ -1868,8 +1868,25 @@ function drawWalker(c,time){const pc=PCOL[c.player];ctx.save();ctx.translate(c.x
   c.pd=c.pd||{skin:SKIN[0],hair:HAIR[0],spinA:0};Object.assign(c.pd,{isJack:true,appearance:save[c.player]?.appearance||'redline',surrenderPose:c.surrender?.phase,gunType:c.weaponHolstered===false?c.gun?.type:null,actionPose:c.cuff?'cuffed':c.hitPoseUntil>simT?'down':null,moving:c.fs>8,walkFrame:c.walkFrame??0,x:0,y:0,a:c.a,ph:c.ph||0,shirt:pc,down:c.down>0?1:0,run:c.fs>200?1:0,cross:null});
   ctx.save();ctx.translate(c.x,c.y);ctx.scale(.65,.65);drawPed(c.pd,time);ctx.restore();
   if(c.punchT>0){drawPunchArm(c);const k=Math.sin((1-c.punchT/.22)*Math.PI),side=c.punchSide?1:-1,px=c.x+Math.cos(c.a)*(12+22*k)-Math.sin(c.a)*side*9,py=c.y+Math.sin(c.a)*(12+22*k)+Math.cos(c.a)*side*9;ctx.fillStyle=c.pd.skin;ctx.strokeStyle='#141414';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(px,py,0,0,7);ctx.fill();ctx.stroke();}
-  if(c.foot&&!c.finished){const t=stealable(c);if(t){const tx=t.cop?t.x:t.dx??t.x,ty=t.cop?t.y:t.dy??t.y,pl=1+Math.sin(time/150)*.08;ctx.strokeStyle='#ffcc33';ctx.lineWidth=4;ctx.setLineDash([10,8]);ctx.beginPath();ctx.arc(tx,ty,(t.r+22)*pl,0,7);ctx.stroke();ctx.setLineDash([]);
-    bigText(t.locked?'DOORS LOCKED':(touchOn()?'GET IN':c.player==='p2'&&mode===2?'V':'ENTER')+' = STEAL',tx,ty-t.r-40,20,'#ffcc33');}}}
+  c.entryPrompt=null;
+  if(c.human&&c.foot&&!c.finished&&!c.inside){const t=stealable(c);if(t)drawVehicleEntryPrompt(c,t);}}
+function drawVehicleEntryPrompt(h,t){
+ const z=Math.max(.1,h.cam?.z||1),x=t.cop?t.x:t.dx??t.x,y=(t.cop?t.y:t.dy??t.y)-(t.r||30)-14/z;
+ const label=h.doorTried?.target===t&&h.doorTried.until>simT?'LOCKED':'GET IN';
+ ctx.save();ctx.translate(x,y);ctx.scale(1/z,1/z);ctx.font='700 10px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+ const w=ctx.measureText(label).width+20;ctx.fillStyle='#162b32ee';ctx.strokeStyle='#d9bc79';ctx.lineWidth=1;
+ ctx.beginPath();ctx.roundRect(-w/2,-11,w,22,5);ctx.fill();ctx.stroke();ctx.fillStyle='#f3e6c6';ctx.fillText(label,0,0);ctx.restore();
+ h.entryPrompt={target:t,x,y,width:w};
+}
+cv.addEventListener('pointerdown',e=>{
+ if(e.button!==0||paused||COMIC||state!=='race')return;
+ const bounds=cv.getBoundingClientRect(),px=e.clientX-bounds.left,py=e.clientY-bounds.top;
+ for(const vp of viewports()){
+  const h=vp.car,p=h.entryPrompt;if(!h.human||!h.foot||h.inside||h.jail||h.cuff||!p||stealable(h)!==p.target)continue;
+  const cam=h.cam;if(!cam)continue;const x=vp.x+vp.w/2+(p.x-cam.x)*cam.z,y=vp.h/2+(p.y-cam.y)*cam.z;
+  if(Math.abs(px-x)<=Math.max(22,p.width/2)&&Math.abs(py-y)<=22){e.preventDefault();toggleFoot(h);return;}
+ }
+});
 function homeDmg(h){if(h.inHome&&!h.foot)return h.dmg;const p=traffic.find(t=>t.veh&&t.veh.home&&t.veh.owner===h);return p?p.veh.dmg:(h.homeDmg0||0);}
 /* ---------- Balloon Battle ---------- */
 const GRACE=20,BTIME=180,BCOL=['#ff3b3b','#ffd23f','#36d06a','#2f8cff','#ff5fbf','#ff8a1f'];
