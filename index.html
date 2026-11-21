@@ -105,10 +105,35 @@ body.street-mode .arena-pickups{display:none}body:not(.street-mode) .street-only
  #comic .comic-nav [data-comic=next]{grid-column:3;grid-row:1}
 }
 
+
 </style><style id="cinematicCharacterStyle">
 #characterPicker{background:radial-gradient(ellipse at 50% 15%,#294048dd,#081117f5);backdrop-filter:blur(12px)}#characterPicker .character-card{width:min(1180px,96vw);box-sizing:border-box;background:linear-gradient(145deg,#20333b,#111f28);color:#eeeadd;border:1px solid #53666b;border-radius:22px;padding:28px;box-shadow:0 25px 100px #000a}#characterPicker .character-card>small{font:700 10px system-ui;letter-spacing:.2em;color:#d4b984}#characterPicker h1{font:800 clamp(25px,4vw,40px)/1.1 'Chakra Petch',system-ui;letter-spacing:.02em;color:#fff0cd;text-shadow:none;margin:12px 0}#characterPicker .character-card>p{font:400 14px/1.5 system-ui;color:#bdcdcb;margin:8px 0 20px}#characterPicker .character-grid{gap:12px}#characterPicker .character-option{border:1px solid #455d63;background:#172b34;border-radius:12px;padding:0 0 12px;transition:transform .16s,border-color .16s;position:relative;color:#eaf0e9}#characterPicker .character-option canvas{width:100%;height:clamp(150px,26vh,260px);object-fit:cover;max-height:none;background:#1a2b32}#characterPicker .character-option b{font:800 13px 'Chakra Petch',system-ui;letter-spacing:.08em;margin-top:12px}#characterPicker .character-option span{font:11px/1.4 system-ui;color:#acbfbd;padding:6px 8px 0;min-height:30px}#characterPicker .character-option[aria-pressed=true]{border:2px solid #e5bf76;box-shadow:0 0 0 1px #e5bf7633,0 10px 25px #0005;transform:translateY(-3px)}#characterPicker .character-option[aria-pressed=true]:after{content:'✓';position:absolute;right:8px;top:8px;width:22px;height:22px;display:grid;place-items:center;border-radius:50%;background:#e6c077;color:#132a32;font:800 14px system-ui}#characterPicker .character-option:focus-visible{outline:2px solid #bce4e3;outline-offset:3px}#characterPicker .character-card>.character-note{background:transparent;border-left:2px solid #d8b875;padding:4px 12px;margin:20px 0 16px;color:#d9c493;font:12px system-ui}#characterConfirm{border:0;border-radius:10px;background:linear-gradient(110deg,#f4d18b,#d9b068);color:#162b32;font:800 16px 'Chakra Petch',system-ui;min-height:48px;box-shadow:0 7px 18px #0003}#characterPicker~#regionalMapButton{display:none}@media(max-width:650px){#characterPicker .character-card{padding:18px;border-radius:16px}#characterPicker .character-grid{gap:8px;grid-template-columns:repeat(3,minmax(0,1fr))}#characterPicker .character-option canvas{height:140px}#characterPicker .character-option span{font-size:10px;min-height:26px}#characterPicker .character-option b{font-size:11px;margin-top:8px}#characterPicker h1{margin:9px 0}#characterPicker .character-card>p{font-size:12px;margin-bottom:12px}}@media(max-height:500px) and (min-width:651px){#characterPicker .character-card{padding:14px 20px;max-height:96dvh;border-radius:14px}#characterPicker .character-card>small{font-size:8px}#characterPicker h1{font-size:24px;margin:5px 0}#characterPicker .character-card>p{font-size:11px;margin:4px 0 10px}#characterPicker .character-option canvas{height:110px}#characterPicker .character-grid{gap:8px}#characterPicker .character-option{padding-bottom:6px}#characterPicker .character-option b{font-size:10px;margin-top:7px}#characterPicker .character-option span{font-size:9px;min-height:22px;padding:3px 5px}#characterPicker .character-card>.character-note{margin:10px 0;font-size:10px}#characterConfirm{min-height:40px;padding:8px;font-size:13px}}
 </style>
 <style>.character-name{display:flex;align-items:center;gap:14px;font:700 10px system-ui;letter-spacing:.1em;color:#d5c49b;margin:12px 0 18px}.character-name input{font:600 16px system-ui;letter-spacing:normal;border:1px solid #637a7f;border-radius:8px;padding:10px 12px;background:#132731;color:#fff2d5;width:min(280px,55vw);box-sizing:border-box}@media(max-height:500px){#characterPicker .character-option canvas{height:85px;object-position:center 20%}.character-name{margin:4px 0 8px}.character-name input{padding:7px 10px;font-size:14px}}body:has(#characterPicker) #regionalMapButton{display:none}</style><link rel="stylesheet" href="phone-apps.css">
+<style>
+/* Compact comic-cover pause menu. */
+#pause{z-index:55;background:rgba(5,13,20,.82);backdrop-filter:blur(7px);box-sizing:border-box}
+#pause .pause-cover{box-sizing:border-box;max-width:940px;padding:0;gap:0;display:grid;grid-template-columns:.8fr 1.2fr;text-align:left;border:3px solid #0b1720;background:#f5ebcf;box-shadow:9px 9px 0 #080f17;overflow:hidden}
+.pause-art{position:relative;min-height:450px;overflow:hidden;border-right:4px solid #111d27;background:linear-gradient(0deg,#071725ee,transparent 65%),url('assets/ink-cover.webp') center/cover}
+.pause-issue{position:absolute;top:20px;left:16px;right:16px;padding:9px;background:#f4d367;color:#122631;font:800 11px var(--ui);letter-spacing:.08em;border:2px solid #11212c;transform:rotate(-2deg)}
+.pause-caption{position:absolute;bottom:76px;left:22px;right:12px;color:#fff2ca;font:30px/1.1 var(--display);text-shadow:3px 3px #0b1720}
+.pause-stamp{position:absolute;bottom:22px;left:20px;padding:9px 12px;border:2px solid #f3d167;transform:rotate(-4deg);color:#f3d167;font:800 12px var(--ui);letter-spacing:.06em}
+.pause-controls{padding:26px;min-width:0;background:radial-gradient(#182e3b15 .7px,transparent .9px) 0 0/5px 5px,#f5ebcf}
+.pause-eyebrow{margin:0 0 8px;font:800 11px var(--ui);letter-spacing:.19em;color:#53616a}
+#pause h1{font-size:clamp(38px,5vw,58px);color:#19323d;text-shadow:3px 3px #e8b94a;line-height:1}
+.pause-sub{color:#526067;margin:10px 0 20px;font:600 15px var(--ui)}
+#pause .modes{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+#pause .btn{box-sizing:border-box;min-width:0;min-height:58px;padding:11px 12px;font-size:14px;line-height:1.25;border:2px solid #243c46;background:#fffaf0;color:#233b46;box-shadow:3px 3px #c9bd9a;gap:4px}
+#pause .btn small{font-size:10px;letter-spacing:.02em;text-transform:none;font-weight:600;opacity:.8}
+#pause #pResume{grid-column:1/-1;min-height:72px;background:#f6ce4d;font-size:20px;border-color:#182d38;box-shadow:4px 4px #182d38;margin-bottom:5px}
+#pause #pQuit{color:#8d3e30}#pause .btn:hover{background:#ffe49a;transform:translateY(-1px)}#pause .btn:focus-visible{outline:3px solid #298b9d;outline-offset:2px}
+.pause-footer{margin:18px 0 0;font:800 10px var(--ui);letter-spacing:.13em;color:#607079}
+body:has(#pause:not([hidden])) #regionalMapButton,body:has(#pause:not([hidden])) #touch,body:has(#pause:not([hidden])) #mobileObjective{visibility:hidden!important}
+@media(max-height:540px){#pause{padding-block:10px}#pause .pause-cover{max-width:900px}.pause-controls{padding:15px 20px}.pause-art{min-height:0}.pause-eyebrow,.pause-sub,.pause-footer{display:none}#pause h1{font-size:32px;margin-bottom:12px}#pause .modes{gap:7px}#pause .btn{min-height:45px;padding:6px 10px;font-size:12px}#pause #pResume{min-height:50px;font-size:17px;margin-bottom:2px}.pause-caption{font-size:24px}.pause-issue{font-size:9px}}
+@media(max-width:600px){#pause .pause-cover{grid-template-columns:1fr}.pause-art{display:none}.pause-controls{padding:20px}#pause .btn{font-size:13px}#pause h1{font-size:42px}}
+@media(max-height:350px){.pause-controls{padding:10px 14px}#pause h1{font-size:26px;margin-bottom:8px}#pause .btn small{display:none}#pause .btn{min-height:44px}#pause #pResume{min-height:44px}.pause-caption{font-size:21px}}
+
+</style>
 </head><body>
 <style>
 #comicLoader{position:fixed;inset:0;z-index:1000;display:grid;grid-template-columns:minmax(0,1fr);place-items:center;background:#121921;color:#fff;overflow:hidden;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);height:100%;height:min(100dvh,var(--loader-viewport-height,100dvh));box-sizing:border-box}
@@ -249,9 +274,9 @@ ol.res li.me{outline:2px solid var(--yellow)}
 #pauseBtn{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:5;width:54px;height:54px;border-radius:50%;border:3px solid #000;background:#ffcc33;font:28px Bungee,Impact,sans-serif;cursor:pointer;box-shadow:3px 3px 0 #000;display:flex;align-items:center;justify-content:center;gap:5px}
 #pauseBtn i{display:block;width:8px;height:22px;background:#141414;border-radius:2px}
 #pauseBtn:hover{background:#fff28a}
-#pause .card{max-width:460px;text-align:center}
-#pause .modes{display:grid;grid-template-columns:1fr;gap:12px}
-#pause h1{font-size:54px}
+
+
+
 .mb.t{background:linear-gradient(135deg,#8af5f0,#19c3c8 45%,#0b7c8a);box-shadow:0 0 18px rgba(25,195,200,.35)}
 .sec{font-family:var(--display);font-weight:400;font-size:clamp(18px,2.4vw,26px);margin:0;color:#f6efd9;transform:skew(-8deg);display:flex;align-items:center;gap:10px}
 .sec::after{content:"";width:46px;height:12px;background:repeating-linear-gradient(115deg,#ffcc33 0 4px,transparent 4px 9px)}
@@ -391,18 +416,22 @@ ol.res li.me{outline:2px solid var(--yellow)}
 <div id="rotatePhone" role="dialog" aria-modal="true" aria-label="Turn your phone sideways" hidden><section><div class="rotate-icon" aria-hidden="true">↻ ▯</div><h2>TURN TO RACE</h2><p>Turn your phone sideways for a clear road and comfortable controls.</p><p>Your game waits here while you turn.</p></section></div><button id="mobileObjective" type="button" aria-expanded="false" hidden><b>YOUR NEXT MOVE · TAP FOR DETAILS</b><span></span></button><div id="touch" aria-hidden="true"></div>
 <div id="phone" hidden><div class="ph-top">📱 GPS · where to?</div><div id="phoneList"></div><div class="ph-foot">tap a place · N to close</div></div>
 <button id="pauseBtn" type="button" aria-label="Pause (P)" hidden><i></i><i></i></button>
-<div class="overlay" id="pause" hidden>
-  <div class="card">
-    <h1>PAUSED</h1>
-    <div class="modes">
-      <button class="btn" id="pResume" type="button">Keep playing<small class="keyboard-only">P · Esc · Enter</small></button>
-      <button class="btn money" id="pRestart" type="button">Start again<small>click to restart</small></button>
-      <button class="btn alt" id="pQuit" type="button">Back to the city<small>you keep your cash</small></button>
-      <button class="btn htopen" type="button" style="background:#f6efd9;color:#141414">❓ How to play<small>controls &amp; pickups</small></button>
-      <button class="btn" id="pMusic" type="button" style="background:#a45cf0;color:#fff">🎵 Music: ON<small>tap to change</small></button>
-      <button class="btn" id="pCity" type="button" style="background:#2f8cff">🌏 Pick city<small>play somewhere else</small></button>
-      <button class="btn money" id="pWho" type="button">👤 Switch player<small>pick who's playing</small></button>
-    </div>
+<div class="overlay" id="pause" hidden role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+  <div class="card pause-cover">
+    <aside class="pause-art" aria-hidden="true"><span class="pause-issue">JACK THE STREETS / INTERMISSION</span><div class="pause-caption">EVERY LEGEND<br>NEEDS A PIT STOP.</div><span class="pause-stamp">TO BE CONTINUED…</span></aside>
+    <section class="pause-controls">
+      <header><p class="pause-eyebrow">TAKE A BREATHER</p><h1 id="pauseTitle">PAUSED.</h1><p class="pause-sub">The streets can wait.</p></header>
+      <div class="modes">
+        <button class="btn" id="pResume" type="button">Back to the action <small>Continue your run <span class="keyboard-only">· P / Esc / Enter</span></small></button>
+        <button class="btn" id="pRestart" type="button">Restart run<small>Start this run again</small></button>
+        <button class="btn" id="pQuit" type="button">Back to the city<small>Keep your cash</small></button>
+        <button class="btn htopen" type="button">How to play<small>Controls &amp; tips</small></button>
+        <button class="btn" id="pMusic" type="button">Music: ON<small>Change the volume</small></button>
+        <button class="btn" id="pCity" type="button">Change city<small>Choose your streets</small></button>
+        <button class="btn" id="pWho" type="button">Switch player<small>Choose a profile</small></button>
+      </div>
+      <p class="pause-footer">YOUR STORY ISN’T OVER.</p>
+    </section>
   </div>
 </div>
 <div id="comic" hidden role="dialog" aria-modal="true" style="position:fixed;inset:0;z-index:60"></div>
@@ -2523,7 +2552,7 @@ function drawOfficers(vis,time){for(const c of cops)for(const o of c.offs||[]){i
 
 function updatePolice(dt){
   if(state==='race'&&!BATTLE())for(const h of cars){if(!h.human||h.finished)continue;updateDispatchEscalation(h);
-    const want0=CAMP()?CAMPN[save.diff||'easy'][Math.min(6,Math.floor(h.wanted))]:FREE()?CHASEN[save.diff||'easy'][Math.floor(h.wanted)]:COPN[save.diff||'easy'][Math.floor(h.wanted)],want=want0>0?Math.max(h.wanted>=2?3:1,Math.round(want0*.8)):0,mine=cops.filter(c=>c.target===h&&!c.gang);
+    const want0=CAMP()?CAMPN[save.diff||'easy'][Math.min(6,Math.floor(h.wanted))]:FREE()?CHASEN[save.diff||'easy'][Math.floor(h.wanted)]:COPN[save.diff||'easy'][Math.floor(h.wanted)],want=gentleBankPursuit(h)?Math.min(2,want0):want0>0?Math.max(h.wanted>=2?3:1,Math.round(want0*.8)):0,mine=cops.filter(c=>c.target===h&&!c.gang);
     h.copT=(h.copT||0)-dt;
     if(mine.length<want&&h.copT<=0&&!(h.dispatchAt>simT)&&!h.cuff&&!(CHASE()&&raceT<GRACE)){cops.push(makeCop(h));h.copT=CAMP()?3.2:FREE()?2.5:3;sfx(700,.3,'sawtooth',-300,.03);}
     const touching=!h.flying&&!h.hidden&&!h.inside&&!h.jail&&mine.some(c=>Math.hypot(c.x-h.x,c.y-h.y)<c.r+h.r+8);
@@ -4552,8 +4581,10 @@ homeStyle.textContent+=`@media(max-width:950px){body.inHomeGarage #touch .nos,bo
 /* Big payouts carry a saved, finite manhunt; escaping a chase does not erase it. */
 const BANK_MANHUNT_SECONDS=1800;
 function bankHeatState(w){return w.bankHeat||(w.bankHeat={remaining:0,cooldown:0,robberies:0});}
-function bankHeistReward(h){const heat=bankHeatState(save[h.player]);if(heat.cooldown>0)return 0;const amount=60000+Math.floor(rnd()*40001);heat.remaining=BANK_MANHUNT_SECONDS;heat.cooldown=BANK_MANHUNT_SECONDS;heat.robberies++;h.bankPatrolT=0;persist();sms(h,'POLICE SCANNER','Bank robbery reported. '+money(amount)+' taken. Major manhunt for 30 minutes of play. Escaping a chase does not clear the alert. Keep out of sight.','bank-'+heat.robberies);return amount;}
-function tickBankHeat(h,dt){const w=save[h.player],heat=bankHeatState(w);if(heat.remaining<=0&&heat.cooldown<=0)return;const step=Math.max(0,Math.min(dt,1)),was=heat.remaining;heat.remaining=Math.max(0,heat.remaining-step);heat.cooldown=Math.max(0,heat.cooldown-step);h.bankHeatSave=(h.bankHeatSave||0)+step;if(h.bankHeatSave>=5||was>0&&heat.remaining===0){h.bankHeatSave=0;persist();}if(heat.remaining<=0){if(was>0)sms(h,'POLICE SCANNER','The bank manhunt has been stood down. Any active chase still needs to be escaped.','bank-clear-'+heat.robberies);return;}if(h.inside||h.jail||h.cuff||h.hidden)return;h.bankPatrolT=Math.max(0,(h.bankPatrolT||0)-step);if(h.bankPatrolT<=0){h.bankPatrolT=75;if(cops.filter(c=>c.target===h&&!c.dead).length<6)cops.push(makeCop(h));}if(pursuitWitness(h)&&h.wanted<3){h.wanted=3;addWanted(h,.1);h.msg='BANK MANHUNT · RECOGNISED BY POLICE';h.msgT=4;} }
+function bankStoryJob(){return typeof MS!=='undefined'&&!!MS?.def?.st?.some(s=>s.k==='rob'&&s.type==='bank');}
+function gentleBankPursuit(h){const heat=bankHeatState(save[h.player]);return !!heat.storyAssist&&(bankStoryJob()||heat.remaining>0)&&h.wanted<=3;}
+function bankHeistReward(h){const heat=bankHeatState(save[h.player]);if(heat.cooldown>0)return 0;const amount=60000+Math.floor(rnd()*40001);heat.storyAssist=bankStoryJob();heat.remaining=heat.storyAssist?90:BANK_MANHUNT_SECONDS;heat.cooldown=BANK_MANHUNT_SECONDS;heat.robberies++;h.bankPatrolT=0;persist();sms(h,'POLICE SCANNER','Bank robbery reported. '+money(amount)+(heat.storyAssist?' taken. Local patrols responding. Reach the hideout and break line of sight. Bank alert lasts 90 seconds.':' taken. Major manhunt for 30 minutes of play. Escaping a chase does not clear the alert. Keep out of sight.'),'bank-'+heat.robberies);return amount;}
+function tickBankHeat(h,dt){const w=save[h.player],heat=bankHeatState(w);if(heat.remaining<=0&&heat.cooldown<=0)return;const step=Math.max(0,Math.min(dt,1)),was=heat.remaining;heat.remaining=Math.max(0,heat.remaining-step);heat.cooldown=Math.max(0,heat.cooldown-step);h.bankHeatSave=(h.bankHeatSave||0)+step;if(h.bankHeatSave>=5||was>0&&heat.remaining===0){h.bankHeatSave=0;persist();}if(heat.remaining<=0){if(was>0)sms(h,'POLICE SCANNER','The bank manhunt has been stood down. Any active chase still needs to be escaped.','bank-clear-'+heat.robberies);return;}if(h.inside||h.jail||h.cuff||h.hidden)return;h.bankPatrolT=Math.max(0,(h.bankPatrolT||0)-step);if(h.bankPatrolT<=0){h.bankPatrolT=heat.storyAssist?45:75;if(cops.filter(c=>c.target===h&&!c.dead).length<(heat.storyAssist?2:6))cops.push(makeCop(h));}if(pursuitWitness(h)&&h.wanted<(heat.storyAssist?2:3)){h.wanted=heat.storyAssist?2:3;addWanted(h,.1);h.msg='BANK MANHUNT · RECOGNISED BY POLICE';h.msgT=4;} }
 const updateCityBeforeBankHeat=updateCityExpansion;updateCityExpansion=function(dt){updateCityBeforeBankHeat(dt);if(!CAMP()||state!=='race'||paused)return;for(const h of cars)if(h.human&&save[h.player])tickBankHeat(h,dt);};
 
 /* The displayed balance includes protected money and unspent bank loot.
@@ -4677,7 +4708,7 @@ function bankWaitLabel(h){const t=bankRobberyWait(h);return Math.floor(t/60)+':'
 function bankVaultNear(I){return Math.hypot((I.px-.55)*1.75,I.py-.68)<.12;}
 function advanceCutawayBank(h,dt){const I=h.inside,sh=I.sh,empty=(sh.robbedAt??-999)>simT-120||bankHeatState(save[h.player]).cooldown>0;
  if(I.done||empty)return;
- if(bankVaultNear(I)&&(held(h.keyset,'fire')||I.robIntent)){I.robT+=dt;if(I.robT>=3){I.done=true;I.robIntent=false;setJackFeeling('uneasy');sh.robbedAt=simT;const amt=bankHeistReward(h);save[h.player].cash+=amt;recordBankLoot(h,amt);persist();refreshBank();I.amt=amt;h.wanted=Math.max(h.wanted,4);addWanted(h,.5);h.hidden=false;h.lastKnown=null;h.robCall={x:h.x,y:h.y,until:simT+60,n:0};h.msg='ALARM · POLICE RESPONDING';h.msgT=3.5;sfx(1000,.1,'square');}}
+ if(bankVaultNear(I)&&(held(h.keyset,'fire')||I.robIntent)){I.robT+=dt;if(I.robT>=3){I.done=true;I.robIntent=false;setJackFeeling('uneasy');sh.robbedAt=simT;const amt=bankHeistReward(h);save[h.player].cash+=amt;recordBankLoot(h,amt);persist();refreshBank();I.amt=amt;h.wanted=Math.max(h.wanted,bankStoryJob()?2:4);addWanted(h,.5);h.hidden=false;h.lastKnown=null;h.robCall={x:h.x,y:h.y,until:simT+60,n:0};h.msg='ALARM · POLICE RESPONDING';h.msgT=3.5;sfx(1000,.1,'square');}}
  else I.robT=Math.max(0,I.robT-dt*2);
 }
 const insideBeforeCutaway=updateInside;updateInside=function(h,dt){if(h.inside.sh.type!=='bank')return insideBeforeCutaway(h,dt);cutawayInit(h,'bank');const I=h.inside;I.t+=dt;cutawayWalk(h,dt,'bank');if(!h.inside)return;if(tapped(h.keyset,'exit')){leaveShop(h);return;}const intruders=cops.flatMap(c=>c.offs||[]).filter(o=>o.room===I.sh.id&&o.down<=0);if(intruders.length&&held(h.keyset,'fire')){if(h.weaponHolstered===false&&h.gun?.ammo>0){if((h.gunCD||0)<=simT){h.gunCD=simT+.25;h.gun.ammo--;intruders[0].down=3;h.offBust=0;h.searchNoiseUntil=simT+2;sfx(500,.08,'triangle',-300,.05);}}else if(tapped(h.keyset,'fire'))fightOfficer(h);return;}advanceCutawayBank(h,dt);};
